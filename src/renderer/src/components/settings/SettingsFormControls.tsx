@@ -578,6 +578,7 @@ export function FontAutocomplete({
   const [prevValue, setPrevValue] = useState(value)
   const [open, setOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const [isFilteringQuery, setIsFilteringQuery] = useState(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const previewFontFamilyRef = useRef(onPreviewFontFamily)
@@ -597,6 +598,9 @@ export function FontAutocomplete({
   if (value !== prevValue) {
     setPrevValue(value)
     setQuery(value)
+    if (value !== query) {
+      setIsFilteringQuery(false)
+    }
   }
 
   useEffect(() => {
@@ -607,6 +611,7 @@ export function FontAutocomplete({
     const handlePointerDown = (event: MouseEvent): void => {
       if (!rootRef.current?.contains(event.target as Node)) {
         setOpen(false)
+        setIsFilteringQuery(false)
       }
     }
 
@@ -625,10 +630,10 @@ export function FontAutocomplete({
     )
     return normalizedQuery ? [...startsWith, ...includes] : suggestions
   }, [suggestions, normalizedQuery])
-  // Why: a committed font fills the input, so filtering by that exact string
-  // collapses the list to one row and arrow/step navigation has nowhere to go.
+  // Why: a committed font fills the input, but typed searches can also mirror
+  // into `value`; only expand exact matches outside an active search session.
   const visibleSuggestions =
-    normalizedQuery === normalizedValue && filteredSuggestions.length <= 1
+    !isFilteringQuery && normalizedQuery === normalizedValue && filteredSuggestions.length <= 1
       ? suggestions
       : filteredSuggestions
 
@@ -670,6 +675,7 @@ export function FontAutocomplete({
 
   const commitValue = (nextValue: string): void => {
     setQuery(nextValue)
+    setIsFilteringQuery(false)
     onChange(nextValue)
     setOpen(false)
   }
@@ -687,15 +693,20 @@ export function FontAutocomplete({
           onChange={(e) => {
             const next = e.target.value
             setQuery(next)
+            setIsFilteringQuery(true)
             onChange(next)
             setOpen(true)
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            setIsFilteringQuery(false)
+            setOpen(true)
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               if (open) {
                 e.preventDefault()
                 setOpen(false)
+                setIsFilteringQuery(false)
               }
               return
             }
@@ -747,6 +758,7 @@ export function FontAutocomplete({
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 setQuery('')
+                setIsFilteringQuery(false)
                 onChange('')
                 setOpen(true)
                 focusInput()
@@ -767,6 +779,9 @@ export function FontAutocomplete({
             onClick={() => {
               const nextOpen = !open
               setOpen(nextOpen)
+              if (!nextOpen) {
+                setIsFilteringQuery(false)
+              }
               if (nextOpen) {
                 focusInput()
               }

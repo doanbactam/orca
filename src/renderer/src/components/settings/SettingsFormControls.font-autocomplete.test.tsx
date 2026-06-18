@@ -25,6 +25,30 @@ describe('FontAutocomplete', () => {
     document.body.replaceChildren()
   })
 
+  function getInput(): HTMLInputElement {
+    const input = container.querySelector<HTMLInputElement>('input[role="combobox"]')
+    if (!input) {
+      throw new Error('Font autocomplete input not found')
+    }
+    return input
+  }
+
+  function getOptionLabels(): string[] {
+    return Array.from(container.querySelectorAll<HTMLElement>('[role="option"]')).map(
+      (option) => option.textContent?.trim() ?? ''
+    )
+  }
+
+  async function typeIntoInput(input: HTMLInputElement, value: string): Promise<void> {
+    await act(async () => {
+      // Why: React tracks controlled input values through the native setter, so
+      // direct assignment can be ignored by the synthetic input event.
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+      setValue?.call(input, value)
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+  }
+
   it('arrow keys move through the full list when the input shows the committed font', async () => {
     function Harness(): ReactNode {
       const [value, setValue] = useState('Geist')
@@ -41,10 +65,7 @@ describe('FontAutocomplete', () => {
       root.render(<Harness />)
     })
 
-    const input = container.querySelector<HTMLInputElement>('input[role="combobox"]')
-    if (!input) {
-      throw new Error('Font autocomplete input not found')
-    }
+    const input = getInput()
 
     await act(async () => {
       input.focus()
@@ -59,5 +80,31 @@ describe('FontAutocomplete', () => {
         .querySelector<HTMLButtonElement>('[role="option"][aria-selected="true"]')
         ?.textContent?.trim()
     ).toBe('JetBrains Mono')
+  })
+
+  it('keeps typed searches filtered even after the value updates', async () => {
+    function Harness(): ReactNode {
+      const [value, setValue] = useState('Geist')
+      return (
+        <FontAutocomplete
+          value={value}
+          suggestions={['Arial', 'Courier New', 'Geist', 'JetBrains Mono', 'SF Mono']}
+          onChange={setValue}
+        />
+      )
+    }
+
+    await act(async () => {
+      root.render(<Harness />)
+    })
+
+    const input = getInput()
+
+    await act(async () => {
+      input.focus()
+    })
+    await typeIntoInput(input, 'Jet')
+
+    expect(getOptionLabels()).toEqual(['JetBrains Mono'])
   })
 })
