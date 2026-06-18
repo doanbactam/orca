@@ -615,6 +615,7 @@ export function FontAutocomplete({
   }, [open])
 
   const normalizedQuery = query.trim().toLowerCase()
+  const normalizedValue = value.trim().toLowerCase()
   const filteredSuggestions = useMemo(() => {
     const startsWith = suggestions.filter((font) => font.toLowerCase().startsWith(normalizedQuery))
     const includes = suggestions.filter(
@@ -624,25 +625,31 @@ export function FontAutocomplete({
     )
     return normalizedQuery ? [...startsWith, ...includes] : suggestions
   }, [suggestions, normalizedQuery])
+  // Why: a committed font fills the input, so filtering by that exact string
+  // collapses the list to one row and arrow/step navigation has nowhere to go.
+  const visibleSuggestions =
+    normalizedQuery === normalizedValue && filteredSuggestions.length <= 1
+      ? suggestions
+      : filteredSuggestions
 
   // Why: sync the highlighted index during render rather than via useEffect so
   // the correct item is highlighted on the very first paint after open/filter
   // changes — useEffect would leave one render with the stale index visible.
-  const [prevFilteredSuggestions, setPrevFilteredSuggestions] = useState(filteredSuggestions)
+  const [prevVisibleSuggestions, setPrevVisibleSuggestions] = useState(visibleSuggestions)
   const [prevOpen, setPrevOpen] = useState(open)
   const [prevHighlightedValue, setPrevHighlightedValue] = useState(value)
   if (
-    filteredSuggestions !== prevFilteredSuggestions ||
+    visibleSuggestions !== prevVisibleSuggestions ||
     open !== prevOpen ||
     value !== prevHighlightedValue
   ) {
-    setPrevFilteredSuggestions(filteredSuggestions)
+    setPrevVisibleSuggestions(visibleSuggestions)
     setPrevOpen(open)
     setPrevHighlightedValue(value)
-    if (!open || filteredSuggestions.length === 0) {
+    if (!open || visibleSuggestions.length === 0) {
       setHighlightedIndex(-1)
     } else {
-      const selectedIndex = filteredSuggestions.findIndex((font) => font === value)
+      const selectedIndex = visibleSuggestions.findIndex((font) => font === value)
       setHighlightedIndex(Math.max(selectedIndex, 0))
     }
   }
@@ -658,8 +665,8 @@ export function FontAutocomplete({
       onPreviewFontFamily(null)
       return
     }
-    onPreviewFontFamily(filteredSuggestions[highlightedIndex] ?? null)
-  }, [filteredSuggestions, highlightedIndex, onPreviewFontFamily, open])
+    onPreviewFontFamily(visibleSuggestions[highlightedIndex] ?? null)
+  }, [visibleSuggestions, highlightedIndex, onPreviewFontFamily, open])
 
   const commitValue = (nextValue: string): void => {
     setQuery(nextValue)
@@ -696,9 +703,9 @@ export function FontAutocomplete({
             if (e.key === 'ArrowDown') {
               e.preventDefault()
               setOpen(true)
-              if (filteredSuggestions.length > 0) {
+              if (visibleSuggestions.length > 0) {
                 setHighlightedIndex((current) =>
-                  current < 0 ? 0 : Math.min(current + 1, filteredSuggestions.length - 1)
+                  current < 0 ? 0 : Math.min(current + 1, visibleSuggestions.length - 1)
                 )
               }
               return
@@ -707,16 +714,16 @@ export function FontAutocomplete({
             if (e.key === 'ArrowUp') {
               e.preventDefault()
               setOpen(true)
-              if (filteredSuggestions.length > 0) {
+              if (visibleSuggestions.length > 0) {
                 setHighlightedIndex((current) =>
-                  current < 0 ? filteredSuggestions.length - 1 : Math.max(current - 1, 0)
+                  current < 0 ? visibleSuggestions.length - 1 : Math.max(current - 1, 0)
                 )
               }
               return
             }
 
             if (e.key === 'Enter' && open && highlightedIndex >= 0) {
-              const highlightedFont = filteredSuggestions[highlightedIndex]
+              const highlightedFont = visibleSuggestions[highlightedIndex]
               if (highlightedFont) {
                 e.preventDefault()
                 commitValue(highlightedFont)
@@ -778,10 +785,10 @@ export function FontAutocomplete({
 
       {open ? (
         <div className="absolute top-full z-20 mt-2 w-full overflow-hidden rounded-md border border-border/50 bg-popover shadow-md">
-          <ScrollArea className={filteredSuggestions.length > 8 ? 'h-64' : undefined}>
+          <ScrollArea className={visibleSuggestions.length > 8 ? 'h-64' : undefined}>
             <div id={listboxId} role="listbox" className="p-1">
-              {filteredSuggestions.length > 0 ? (
-                filteredSuggestions.map((font, index) => (
+              {visibleSuggestions.length > 0 ? (
+                visibleSuggestions.map((font, index) => (
                   <button
                     key={font}
                     type="button"
