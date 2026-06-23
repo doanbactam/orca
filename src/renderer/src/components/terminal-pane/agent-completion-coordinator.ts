@@ -68,6 +68,8 @@ export function createAgentCompletionCoordinator(
   let pendingHookDoneTimer: ReturnType<typeof setTimeout> | null = null
   let pendingHookDoneTitle: string | null = null
   let pendingHookDonePayload: AgentCompletionStatusSnapshot | null = null
+  let pendingHookDoneGeneration = 0
+  let hookDoneInspectionInFlight = false
   let pendingProcessExitAgent: RecognizedAgentProcess | null = null
   let pendingTitleSequence = 0
   let pendingTitle: {
@@ -99,6 +101,7 @@ export function createAgentCompletionCoordinator(
   }
 
   function clearPendingHookDone(): void {
+    pendingHookDoneGeneration += 1
     if (pendingHookDoneTimer !== null) {
       clearTimeout(pendingHookDoneTimer)
       pendingHookDoneTimer = null
@@ -258,6 +261,8 @@ export function createAgentCompletionCoordinator(
     if (pendingHookDoneTimer !== null) {
       return
     }
+    const generationAtSchedule = pendingHookDoneGeneration
+    const turnAtSchedule = currentTurn
     // Why: goal/mission agents can report a temporary done state between
     // milestones. Wait for a short quiet window so resumed work can cancel it.
     pendingHookDoneTimer = setTimeout(() => {
@@ -271,14 +276,28 @@ export function createAgentCompletionCoordinator(
           return
         }
         const ptyId = options.getPtyId()
+        let hasChildProcesses = false
         if (ptyId) {
+          hookDoneInspectionInFlight = true
           try {
             const inspection = await options.inspectProcess(options.getSettings(), ptyId)
-            if (inspection.hasChildProcesses && pendingPayload) {
-              scheduleHookDoneCompletion(pendingTitle, pendingPayload)
-              return
-            }
-          } catch {}
+            hasChildProcesses = inspection.hasChildProcesses
+          } catch {
+          } finally {
+            hookDoneInspectionInFlight = false
+          }
+        }
+        if (
+          disposed ||
+          !options.isLive() ||
+          generationAtSchedule !== pendingHookDoneGeneration ||
+          turnAtSchedule !== currentTurn
+        ) {
+          return
+        }
+        if (hasChildProcesses && pendingPayload) {
+          scheduleHookDoneCompletion(pendingTitle, pendingPayload)
+          return
         }
         const hookIdentity = pendingPayload ? hookCompletionIdentity(pendingPayload) : null
         dispatchCompletion('hook', pendingTitle, {
@@ -498,7 +517,7 @@ export function createAgentCompletionCoordinator(
   }
 
   function shouldRunCadenceInspection(): boolean {
-    if (pendingHookDoneTimer !== null) {
+    if (pendingHookDoneTimer !== null || hookDoneInspectionInFlight) {
       return false
     }
     // Why: hidden idle terminals should not join the global process-inspection
