@@ -217,7 +217,12 @@ export function createAgentCompletionCoordinator(
     if (requiresFreshWorking || lastCompletedTurn === currentTurn) {
       return
     }
-    if (!options.isLive() || !hasAgentRunEvidence) {
+    if (!options.isLive()) {
+      return
+    }
+    const hookQuietHasRunEvidence =
+      optionsOverride.quietedHookDone === true && optionsOverride.agentStatus !== undefined
+    if (!hasAgentRunEvidence && !hookQuietHasRunEvidence) {
       return
     }
     const now = Date.now()
@@ -256,12 +261,25 @@ export function createAgentCompletionCoordinator(
     // Why: goal/mission agents can report a temporary done state between
     // milestones. Wait for a short quiet window so resumed work can cancel it.
     pendingHookDoneTimer = setTimeout(() => {
-      pendingHookDoneTimer = null
-      const pendingTitle = pendingHookDoneTitle
-      const pendingPayload = pendingHookDonePayload
-      pendingHookDoneTitle = null
-      pendingHookDonePayload = null
-      if (pendingTitle) {
+      void (async () => {
+        pendingHookDoneTimer = null
+        const pendingTitle = pendingHookDoneTitle
+        const pendingPayload = pendingHookDonePayload
+        pendingHookDoneTitle = null
+        pendingHookDonePayload = null
+        if (!pendingTitle) {
+          return
+        }
+        const ptyId = options.getPtyId()
+        if (ptyId) {
+          try {
+            const inspection = await options.inspectProcess(options.getSettings(), ptyId)
+            if (inspection.hasChildProcesses && pendingPayload) {
+              scheduleHookDoneCompletion(pendingTitle, pendingPayload)
+              return
+            }
+          } catch {}
+        }
         const hookIdentity = pendingPayload ? hookCompletionIdentity(pendingPayload) : null
         dispatchCompletion('hook', pendingTitle, {
           quietedHookDone: true,
@@ -276,7 +294,7 @@ export function createAgentCompletionCoordinator(
               }
             : {})
         })
-      }
+      })()
     }, HOOK_DONE_QUIET_MS)
   }
 
@@ -406,7 +424,10 @@ export function createAgentCompletionCoordinator(
       clearAgentRunEvidence()
     } else {
       lastForegroundAgent = null
-      clearAgentRunEvidence()
+      agentIdentityEstablished = false
+      hasAgentRunEvidence = false
+      pendingProcessExitAgent = null
+      dropPendingTitle()
     }
     return false
   }
@@ -477,6 +498,9 @@ export function createAgentCompletionCoordinator(
   }
 
   function shouldRunCadenceInspection(): boolean {
+    if (pendingHookDoneTimer !== null) {
+      return false
+    }
     // Why: hidden idle terminals should not join the global process-inspection
     // cadence. Once a pane has agent evidence, keep the backstop alive so an
     // unannounced process exit can still produce/clear completion state.
