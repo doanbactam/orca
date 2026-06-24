@@ -62,4 +62,17 @@ describe('MimoCodeHookService buildPtyEnv', () => {
       readFileSync(join(mimocodeHome, 'config', 'plugins', 'orca-mimocode-status.js'), 'utf8')
     ).toBe('USER PLUGIN')
   })
+
+  it('reuses the overlay home on a second buildPtyEnv call', () => {
+    const service = new MimoCodeHookService()
+    const first = service.buildPtyEnv('pty-1', mimocodeHome)
+    const second = service.buildPtyEnv('pty-2', mimocodeHome)
+
+    const overlayHome = join(userDataDir, 'mimocode-hooks', 'shared')
+    expect(first.MIMOCODE_HOME).toBe(overlayHome)
+    expect(second.MIMOCODE_HOME).toBe(overlayHome)
+    expect(
+      readFileSync(join(overlayHome, 'config', 'plugins', 'orca-mimocode-status.js'), 'utf8')
+    ).toContain('/hook/mimo-code')
+  })
 })

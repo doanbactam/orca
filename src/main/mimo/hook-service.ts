@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { join } from 'path'
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { getOpenCodeFamilyPluginSource } from '../opencode/hook-service'
 import { mirrorEntry } from '../pty/overlay-mirror'
@@ -57,9 +57,11 @@ export class MimoCodeHookService {
       for (const sub of ['config', 'data', 'cache', 'state'] as const) {
         mkdirSync(join(home, sub), { recursive: true })
       }
+      const overlayConfig = join(home, 'config')
       const sourceConfig = resolveSourceConfigDir(existingMimocodeHome)
       if (sourceConfig) {
-        mirrorConfigDir(sourceConfig, join(home, 'config'))
+        rmSync(overlayConfig, { recursive: true, force: true })
+        mirrorConfigDir(sourceConfig, overlayConfig)
       }
       const pluginsDir = join(home, 'config', 'plugins')
       mkdirSync(pluginsDir, { recursive: true })
