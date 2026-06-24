@@ -779,6 +779,17 @@ describe('registerPtyHandlers', () => {
       expect(env.ORCA_MIMOCODE_SOURCE_HOME).toBeUndefined()
     })
 
+    it.each(['/usr/local/bin/mimo --prompt hi', '"C:\\Program Files\\MiMo\\mimo.cmd" --prompt hi'])(
+      'injects MiMo overlay env for path-qualified launch command %s',
+      async (launchCommand) => {
+        const env = await spawnAndGetEnv(undefined, undefined, undefined, undefined, launchCommand)
+
+        expect(mimoCodeBuildPtyEnvMock).toHaveBeenCalledTimes(1)
+        expect(env.MIMOCODE_HOME).toBe('/tmp/orca-mimocode-shared')
+        expect(env.ORCA_MIMOCODE_HOME).toBe('/tmp/orca-mimocode-shared')
+      }
+    )
+
     it('does not inject MiMo overlay for non-mimo launches', async () => {
       await spawnAndGetEnv()
 

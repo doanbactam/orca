@@ -1,9 +1,9 @@
 import { app } from 'electron'
 import { join } from 'path'
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { getOpenCodeFamilyPluginSource } from '../opencode/hook-service'
-import { mirrorEntry } from '../pty/overlay-mirror'
+import { mirrorEntry, safeRemoveTree } from '../pty/overlay-mirror'
 
 const ORCA_MIMOCODE_PLUGIN_FILE = 'orca-mimocode-status.js'
 const MIMOCODE_HOOKS_DIR = 'mimocode-hooks'
@@ -51,7 +51,8 @@ export class MimoCodeHookService {
   clearPty(_ptyId: string): void {}
 
   buildPtyEnv(_ptyId: string, existingMimocodeHome?: string): Record<string, string> {
-    // ponytail: shared overlay; per-source subdirs if multi-pane MiMo ships.
+    // Why: MiMo currently uses a shared home; per-source subdirs can come
+    // later if concurrent MiMo panes need isolated runtime state.
     const home = join(app.getPath('userData'), MIMOCODE_HOOKS_DIR, MIMOCODE_SHARED_HOME)
     try {
       for (const sub of ['config', 'data', 'cache', 'state'] as const) {
@@ -60,7 +61,7 @@ export class MimoCodeHookService {
       const overlayConfig = join(home, 'config')
       const sourceConfig = resolveSourceConfigDir(existingMimocodeHome)
       if (sourceConfig) {
-        rmSync(overlayConfig, { recursive: true, force: true })
+        safeRemoveTree(overlayConfig)
         mirrorConfigDir(sourceConfig, overlayConfig)
       }
       const pluginsDir = join(home, 'config', 'plugins')

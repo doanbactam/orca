@@ -25,7 +25,10 @@ import {
 } from '../../shared/local-windows-terminal-runtime'
 import { openCodeHookService } from '../opencode/hook-service'
 import { mimoCodeHookService } from '../mimo/hook-service'
-import { getFirstCommandToken } from '../../shared/command-token-scanner'
+import {
+  getCommandTokenPathBasename,
+  getFirstCommandToken
+} from '../../shared/command-token-scanner'
 import { agentHookServer } from '../agent-hooks/server'
 import { isAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
 import { piTitlebarExtensionService } from '../pi/titlebar-extension-service'
@@ -614,7 +617,10 @@ function restoreOrStripOverlayEnv(
 }
 
 function isMimoLaunchCommand(launchCommand: string | undefined): boolean {
-  return getFirstCommandToken(launchCommand ?? '').toLowerCase() === 'mimo'
+  const binary = getCommandTokenPathBasename(getFirstCommandToken(launchCommand ?? ''))
+    .toLowerCase()
+    .replace(/\.(?:cmd|exe|sh)$/, '')
+  return binary === 'mimo'
 }
 
 function resolveMimocodeSourceHome(baseEnv: Record<string, string>): string | undefined {

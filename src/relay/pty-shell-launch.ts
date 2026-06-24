@@ -40,7 +40,10 @@ function windowsShellArgs(shellName: string): string[] | null {
 
 function hasOverlayRestoreEnv(env: Record<string, string>): boolean {
   return Boolean(
-    env.ORCA_OPENCODE_CONFIG_DIR || env.ORCA_REMOTE_CLI_BIN_DIR || env.ORCA_OMP_STATUS_EXTENSION
+    env.ORCA_OPENCODE_CONFIG_DIR ||
+    env.ORCA_MIMOCODE_HOME ||
+    env.ORCA_REMOTE_CLI_BIN_DIR ||
+    env.ORCA_OMP_STATUS_EXTENSION
   )
 }
 
