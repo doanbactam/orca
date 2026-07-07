@@ -13,9 +13,13 @@ vi.mock('@/runtime/web-runtime-session', () => ({
   splitWebRuntimeTerminal: mocks.splitWebRuntimeTerminal
 }))
 
-vi.mock('./resolve-split-cwd', () => ({
-  resolveSplitCwd: mocks.resolveSplitCwd
-}))
+vi.mock('./resolve-split-cwd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./resolve-split-cwd')>()
+  return {
+    ...actual,
+    resolveSplitCwd: mocks.resolveSplitCwd
+  }
+})
 
 vi.mock('./terminal-pane-split-completion', () => ({
   recordCreatedTerminalPaneSplit: mocks.recordCreatedTerminalPaneSplit
@@ -36,6 +40,23 @@ describe('splitTerminalPaneWithInheritedCwd', () => {
     mocks.resolveSplitCwd.mockReset()
     mocks.splitWebRuntimeTerminal.mockReset()
     mocks.splitWebRuntimeTerminal.mockReturnValue(false)
+  })
+
+  it('clamps a confirmed cached cwd outside the worktree to the worktree root (#7685)', () => {
+    const splitPane = vi.fn(() => ({ id: 2 }))
+
+    splitTerminalPaneWithInheritedCwd({
+      manager: makeManager(splitPane),
+      paneTransports: new Map<number, PtyTransport>(),
+      // Why: shell did `cd ..` above the worktree root before the split.
+      paneCwdMap: new Map([[1, { cwd: '/outside/somewhere', confirmed: true }]]),
+      fallbackCwd: '/worktree',
+      pane: { id: 1 } as ManagedPane,
+      direction: 'vertical',
+      source: 'context_menu'
+    })
+
+    expect(splitPane).toHaveBeenCalledWith(1, 'vertical', { cwd: '/worktree' })
   })
 
   it('uses the live manager after async cwd resolution', async () => {

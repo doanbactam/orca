@@ -22,19 +22,19 @@ describe('resolveSplitCwd', () => {
   it('returns the confirmed OSC 7 entry without calling IPC', async () => {
     const getCwd = vi.fn()
     installGetCwd(getCwd as unknown as (id: string) => Promise<string>)
-    const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/live/here', confirmed: true }]])
+    const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/worktree/live/here', confirmed: true }]])
     const result = await resolveSplitCwd({
       paneCwdMap,
       sourcePaneId: 1,
       sourcePtyId: 'pty-1',
       fallbackCwd: '/worktree'
     })
-    expect(result).toBe('/live/here')
+    expect(result).toBe('/worktree/live/here')
     expect(getCwd).not.toHaveBeenCalled()
   })
 
   it('queries IPC when no confirmed entry exists', async () => {
-    installGetCwd(async () => '/tmp/ipc')
+    installGetCwd(async () => '/worktree/tmp/ipc')
     const paneCwdMap: PaneCwdMap = new Map()
     const result = await resolveSplitCwd({
       paneCwdMap,
@@ -42,19 +42,19 @@ describe('resolveSplitCwd', () => {
       sourcePtyId: 'pty-1',
       fallbackCwd: '/worktree'
     })
-    expect(result).toBe('/tmp/ipc')
+    expect(result).toBe('/worktree/tmp/ipc')
   })
 
   it('falls through to the unconfirmed cached entry when IPC returns empty', async () => {
     installGetCwd(async () => '')
-    const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/replayed', confirmed: false }]])
+    const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/worktree/replayed', confirmed: false }]])
     const result = await resolveSplitCwd({
       paneCwdMap,
       sourcePaneId: 1,
       sourcePtyId: 'pty-1',
       fallbackCwd: '/worktree'
     })
-    expect(result).toBe('/replayed')
+    expect(result).toBe('/worktree/replayed')
   })
 
   it('falls back to worktree root when OSC 7 and IPC both miss', async () => {
@@ -72,7 +72,7 @@ describe('resolveSplitCwd', () => {
     installGetCwd(
       () =>
         new Promise<string>((resolve) => {
-          setTimeout(() => resolve('/slow/ipc'), 900)
+          setTimeout(() => resolve('/worktree/slow/ipc'), 900)
         })
     )
     const promise = resolveSplitCwd({
@@ -82,7 +82,7 @@ describe('resolveSplitCwd', () => {
       fallbackCwd: '/worktree'
     })
     await vi.advanceTimersByTimeAsync(900)
-    expect(await promise).toBe('/slow/ipc')
+    expect(await promise).toBe('/worktree/slow/ipc')
   })
 
   it('times out and falls back when IPC hangs', async () => {
@@ -120,6 +120,21 @@ describe('resolveSplitCwd', () => {
       fallbackCwd: '/remote/worktree'
     })
     expect(result).toBe('/remote/worktree')
+    expect(getCwd).not.toHaveBeenCalled()
+  })
+
+  it('clamps a confirmed OSC 7 cwd outside the worktree to the worktree root (#7685)', async () => {
+    const getCwd = vi.fn()
+    installGetCwd(getCwd as unknown as (id: string) => Promise<string>)
+    // Why: shell did `cd ..` above the worktree root before the split.
+    const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/outside/somewhere', confirmed: true }]])
+    const result = await resolveSplitCwd({
+      paneCwdMap,
+      sourcePaneId: 1,
+      sourcePtyId: 'pty-1',
+      fallbackCwd: '/worktree'
+    })
+    expect(result).toBe('/worktree')
     expect(getCwd).not.toHaveBeenCalled()
   })
 })

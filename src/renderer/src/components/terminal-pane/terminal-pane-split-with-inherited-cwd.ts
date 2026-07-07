@@ -2,7 +2,7 @@ import type { TerminalPaneSplitSource } from '../../../../shared/feature-educati
 import type { ManagedPane, PaneManager } from '@/lib/pane-manager/pane-manager'
 import { splitWebRuntimeTerminal } from '@/runtime/web-runtime-session'
 import type { PtyTransport } from './pty-transport'
-import { resolveSplitCwd, type PaneCwdMap } from './resolve-split-cwd'
+import { clampCwdToWorktree, resolveSplitCwd, type PaneCwdMap } from './resolve-split-cwd'
 import { recordCreatedTerminalPaneSplit } from './terminal-pane-split-completion'
 
 export function splitTerminalPaneWithInheritedCwd(args: {
@@ -21,7 +21,11 @@ export function splitTerminalPaneWithInheritedCwd(args: {
   }
   const cached = args.paneCwdMap.get(args.pane.id)
   if (cached?.confirmed && cached.cwd) {
-    const createdPane = args.manager.splitPane(args.pane.id, args.direction, { cwd: cached.cwd })
+    // Why: the source shell can `cd` above the worktree root; spawning there
+    // hits the main-process worktree guard and leaves a dead pane (#7685).
+    const createdPane = args.manager.splitPane(args.pane.id, args.direction, {
+      cwd: clampCwdToWorktree(cached.cwd, args.fallbackCwd)
+    })
     recordCreatedTerminalPaneSplit(createdPane, {
       source: args.source,
       direction: args.direction
