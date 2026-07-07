@@ -21,8 +21,6 @@ export function splitTerminalPaneWithInheritedCwd(args: {
   }
   const cached = args.paneCwdMap.get(args.pane.id)
   if (cached?.confirmed && cached.cwd) {
-    // Why: the source shell can `cd` above the worktree root; spawning there
-    // hits the main-process worktree guard and leaves a dead pane (#7685).
     const createdPane = args.manager.splitPane(args.pane.id, args.direction, {
       cwd: clampCwdToWorktree(cached.cwd, args.fallbackCwd)
     })

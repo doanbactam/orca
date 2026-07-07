@@ -126,7 +126,6 @@ describe('resolveSplitCwd', () => {
   it('clamps a confirmed OSC 7 cwd outside the worktree to the worktree root (#7685)', async () => {
     const getCwd = vi.fn()
     installGetCwd(getCwd as unknown as (id: string) => Promise<string>)
-    // Why: shell did `cd ..` above the worktree root before the split.
     const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/outside/somewhere', confirmed: true }]])
     const result = await resolveSplitCwd({
       paneCwdMap,

@@ -48,7 +48,6 @@ describe('splitTerminalPaneWithInheritedCwd', () => {
     splitTerminalPaneWithInheritedCwd({
       manager: makeManager(splitPane),
       paneTransports: new Map<number, PtyTransport>(),
-      // Why: shell did `cd ..` above the worktree root before the split.
       paneCwdMap: new Map([[1, { cwd: '/outside/somewhere', confirmed: true }]]),
       fallbackCwd: '/worktree',
       pane: { id: 1 } as ManagedPane,

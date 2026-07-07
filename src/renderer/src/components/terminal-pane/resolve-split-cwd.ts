@@ -18,11 +18,8 @@ export type PaneCwdMap = Map<number, PaneCwdEntry>
 // for the next Cmd+D.
 const GET_CWD_TIMEOUT_MS = 1000
 
-// Why: a source shell can legitimately `cd` above the worktree root (e.g.
-// `cd ..`). Passing that cwd straight to pty.spawn hits the main-process
-// worktree guard and throws, leaving the new split as a dead pane with an
-// internal error (#7685). Clamp here so an out-of-worktree cwd degrades to
-// the worktree root instead of failing the split.
+// Why: an inherited split cwd above the worktree root (e.g. after `cd ..`)
+// would hit the main-process spawn guard and leave a dead pane (#7685).
 export function clampCwdToWorktree(candidateCwd: string, worktreeRoot: string): string {
   return isPathInsideOrEqual(worktreeRoot, candidateCwd) ? candidateCwd : worktreeRoot
 }
