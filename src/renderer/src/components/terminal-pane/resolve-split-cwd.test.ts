@@ -137,4 +137,27 @@ describe('resolveSplitCwd', () => {
     expect(result).toBe('/worktree')
     expect(getCwd).not.toHaveBeenCalled()
   })
+
+  it('clamps an IPC-resolved cwd outside the worktree to the worktree root (#7685)', async () => {
+    installGetCwd(async () => '/outside/somewhere')
+    const result = await resolveSplitCwd({
+      paneCwdMap: new Map(),
+      sourcePaneId: 1,
+      sourcePtyId: 'pty-1',
+      fallbackCwd: '/worktree'
+    })
+    expect(result).toBe('/worktree')
+  })
+
+  it('clamps an unconfirmed cached cwd outside the worktree to the worktree root (#7685)', async () => {
+    installGetCwd(async () => '')
+    const paneCwdMap: PaneCwdMap = new Map([[1, { cwd: '/outside/somewhere', confirmed: false }]])
+    const result = await resolveSplitCwd({
+      paneCwdMap,
+      sourcePaneId: 1,
+      sourcePtyId: 'pty-1',
+      fallbackCwd: '/worktree'
+    })
+    expect(result).toBe('/worktree')
+  })
 })
