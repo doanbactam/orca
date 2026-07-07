@@ -1768,12 +1768,12 @@ function App(): React.JSX.Element {
       // Why: reuses whichever app the user last picked from the "Open in" menu
       // (tracked as index 0 of settings.openInApplications); no-op until one is picked.
       if (matchShortcut('workspace.openInLastUsedApp') && activeWorktreeId) {
-        input.preventDefault()
-        notifyTerminalCapture('workspace.openInLastUsedApp')
         const store = useAppStore.getState()
         const worktree = findWorktreeById(store.worktreesByRepo, activeWorktreeId)
         const lastUsedApp = store.settings?.openInApplications?.[0]
         if (worktree && lastUsedApp) {
+          input.preventDefault()
+          notifyTerminalCapture('workspace.openInLastUsedApp')
           void openWorktreePath({
             target: 'external-editor',
             worktreePath: worktree.path,

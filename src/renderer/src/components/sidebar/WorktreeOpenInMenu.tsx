@@ -132,7 +132,7 @@ export async function openWorktreePath(args: {
     const current = store.settings?.openInApplications ?? []
     const reordered = moveOpenInApplicationToFront(current, args.appId)
     if (reordered !== current) {
-      store.updateSettings({ openInApplications: reordered })
+      void store.updateSettings({ openInApplications: reordered })
     }
   }
 }
