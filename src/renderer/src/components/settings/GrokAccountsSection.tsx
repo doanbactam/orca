@@ -35,7 +35,7 @@ export function GrokAccountsSection(): React.JSX.Element {
     }
   }, [])
 
-  // Why: rate-limit polling can flip errors/token freshness without a manual refresh.
+  // Why: after a background usage fetch, sign-in state may change — reload status then.
   useEffect(() => {
     void loadStatus()
   }, [loadStatus, grokUsage?.updatedAt])
@@ -64,7 +64,7 @@ export function GrokAccountsSection(): React.JSX.Element {
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.GrokAccountsSection.f6e5d4c3b2',
-              'Uses your Grok CLI OAuth session (~/.grok/auth.json) for weekly credit usage.'
+              'Shows weekly credit usage from your Grok CLI sign-in (session file ~/.grok/auth.json).'
             )}
           </p>
         </div>
@@ -106,7 +106,7 @@ export function GrokAccountsSection(): React.JSX.Element {
                 {tokenFresh
                   ? translate(
                       'auto.components.settings.GrokAccountsSection.c3d4e5f6a7',
-                      'Session active. Orca reads credentials locally; tokens are refreshed by the Grok CLI.'
+                      'Signed in. Orca only reads that file on disk — run grok login again if usage fails.'
                     )
                   : translate(
                       'auto.components.settings.GrokAccountsSection.d4e5f6a7b8',
@@ -125,7 +125,7 @@ export function GrokAccountsSection(): React.JSX.Element {
               <p className="text-xs text-muted-foreground">
                 {translate(
                   'auto.components.settings.GrokAccountsSection.f6a7b8c9d0',
-                  'Run grok login (or start grok) to authenticate with xAI OAuth, then refresh usage here.'
+                  'In a terminal, run grok login, then click Refresh usage here.'
                 )}
               </p>
             </>
@@ -156,7 +156,7 @@ export function GrokAccountsSection(): React.JSX.Element {
           )}
           description={translate(
             'auto.components.settings.GrokAccountsSection.b7e2d9f0a3',
-            'Mirrors the Grok TUI /usage weekly credit meter.'
+            'Same weekly credit % as the grok /usage screen in the terminal.'
           )}
           keywords={['grok', 'xai', 'usage', 'credits', 'oauth']}
         >

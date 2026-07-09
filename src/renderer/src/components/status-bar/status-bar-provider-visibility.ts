@@ -8,8 +8,7 @@ export type UsageProviderSettings = Pick<
   | 'opencodeSessionCookie'
   | 'geminiCliOAuthEnabled'
 > & {
-  // Why: MiniMax cookie and Grok CLI auth are not in GlobalSettings; main pushes
-  // these flags on RateLimitState so the bar stays visible across reloads.
+  // Why: MiniMax/Grok sign-in live on disk, not in settings; main sets these each poll.
   minimaxCookieConfigured: boolean
   grokAuthConfigured: boolean
 }

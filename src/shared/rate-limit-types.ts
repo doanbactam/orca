@@ -118,7 +118,7 @@ export type RateLimitState = {
    * between snapshot refreshes.
    */
   minimaxCookieConfigured: boolean
-  /** True when ~/.grok/auth.json (or GROK_HOME) has a Grok CLI OAuth session. */
+  /** True when main finds a Grok CLI session file (~/.grok/auth.json or GROK_HOME). */
   grokAuthConfigured: boolean
   claudeTarget: RateLimitRuntimeTarget
   codexTarget: RateLimitRuntimeTarget

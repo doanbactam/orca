@@ -2,7 +2,7 @@ import { net } from 'electron'
 import type { ProviderRateLimits, RateLimitWindow } from '../../shared/rate-limit-types'
 import { isGrokAccessTokenFresh, readGrokAuthSession, type GrokAuthSession } from './grok-auth'
 
-// Why: use the same cli-chat-proxy URL and headers as Grok CLI billing (/usage).
+// Why: billing URL and headers must match Grok CLI or xAI rejects the request.
 const GROK_CLI_PROXY_BASE =
   process.env.GROK_CLI_CHAT_PROXY_BASE_URL?.replace(/\/$/, '') ??
   'https://cli-chat-proxy.grok.com/v1'
@@ -124,7 +124,7 @@ function mapBillingResponse(
   }
 }
 
-// Why: read-only — Grok CLI owns token refresh; Orca only reads auth.json and polls credits.
+// Why: Orca never runs grok login; it only reads the session file the CLI updates.
 export async function fetchGrokRateLimits(): Promise<ProviderRateLimits> {
   const readResult = readGrokAuthSession()
   if (readResult.status === 'missing') {

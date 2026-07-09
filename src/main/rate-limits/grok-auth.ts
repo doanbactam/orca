@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
-// Why: honor GROK_HOME so Orca reads the same auth.json as the active Grok CLI session.
+// Why: when GROK_HOME is set, auth.json must be the same path Grok CLI uses.
 export function getGrokHome(): string {
   return process.env.GROK_HOME?.trim() || join(homedir(), '.grok')
 }
@@ -98,7 +98,7 @@ const TOKEN_SKEW_MS = 5 * 60 * 1000
 
 export function isGrokAccessTokenFresh(session: GrokAuthSession): boolean {
   if (session.expiresAtMs === null) {
-    // Why: some sessions omit expires_at; billing 401 is the real stale signal.
+    // Why: auth.json may lack expiry; a bad token still surfaces as billing HTTP 401.
     return true
   }
   return session.expiresAtMs - Date.now() > TOKEN_SKEW_MS
