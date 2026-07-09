@@ -2,8 +2,7 @@ import { net } from 'electron'
 import type { ProviderRateLimits, RateLimitWindow } from '../../shared/rate-limit-types'
 import { isGrokAccessTokenFresh, readGrokAuthSession, type GrokAuthSession } from './grok-auth'
 
-// Why: reverse-engineered from Grok CLI (billing.rs) — same host/headers as
-// documented chat proxy access in ~/.grok/README.md.
+// Why: use the same cli-chat-proxy URL and headers as Grok CLI billing (/usage).
 const GROK_CLI_PROXY_BASE =
   process.env.GROK_CLI_CHAT_PROXY_BASE_URL?.replace(/\/$/, '') ??
   'https://cli-chat-proxy.grok.com/v1'
@@ -67,8 +66,7 @@ function mapWeeklyCredits(config: GrokBillingConfig): RateLimitWindow | null {
   if (typeof usedPercent !== 'number' || !Number.isFinite(usedPercent)) {
     return null
   }
-  const periodEnd =
-    config.currentPeriod?.end ?? config.billingPeriodEnd ?? config.billingPeriodStart
+  const periodEnd = config.currentPeriod?.end ?? config.billingPeriodEnd
   const resetsAt = periodEnd ? Date.parse(periodEnd) : null
   return {
     usedPercent: Math.min(100, Math.max(0, usedPercent)),
@@ -126,13 +124,7 @@ function mapBillingResponse(
   }
 }
 
-/**
- * Subscription credit usage for Grok Build OAuth sessions.
- *
- * Why read-only: refresh_token rotation is owned by the Grok CLI. Orca only
- * reads ~/.grok/auth.json and calls the same cli-chat-proxy billing endpoint
- * the TUI `/usage` command uses.
- */
+// Why: read-only — Grok CLI owns token refresh; Orca only reads auth.json and polls credits.
 export async function fetchGrokRateLimits(): Promise<ProviderRateLimits> {
   const readResult = readGrokAuthSession()
   if (readResult.status === 'missing') {

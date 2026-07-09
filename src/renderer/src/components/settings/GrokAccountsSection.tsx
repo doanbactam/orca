@@ -6,16 +6,9 @@ import { cn } from '@/lib/utils'
 import { useAppStore } from '../../store'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import type { GrokAccountStatus } from '../../../../shared/rate-limit-types'
 import { SearchableSetting } from './SearchableSetting'
 const GROK_CLI_DOCS_URL = 'https://docs.x.ai/build/overview'
-
-type GrokAccountStatus = {
-  signedIn: boolean
-  email: string | null
-  teamId: string | null
-  tokenFresh: boolean
-  error: string | null
-}
 
 export function GrokAccountsSection(): React.JSX.Element {
   const refreshRateLimits = useAppStore((s) => s.refreshRateLimits)
@@ -42,6 +35,7 @@ export function GrokAccountsSection(): React.JSX.Element {
     }
   }, [])
 
+  // Why: rate-limit polling can flip errors/token freshness without a manual refresh.
   useEffect(() => {
     void loadStatus()
   }, [loadStatus, grokUsage?.updatedAt])
@@ -157,11 +151,11 @@ export function GrokAccountsSection(): React.JSX.Element {
       {grokUsage?.weekly ? (
         <SearchableSetting
           title={translate(
-            'auto.components.settings.GrokAccountsSection.weeklyCredits',
+            'auto.components.settings.GrokAccountsSection.a8f3e2c1b4',
             'Weekly credits'
           )}
           description={translate(
-            'auto.components.settings.GrokAccountsSection.weeklyCreditsDesc',
+            'auto.components.settings.GrokAccountsSection.b7e2d9f0a3',
             'Mirrors the Grok TUI /usage weekly credit meter.'
           )}
           keywords={['grok', 'xai', 'usage', 'credits', 'oauth']}
@@ -173,7 +167,7 @@ export function GrokAccountsSection(): React.JSX.Element {
             {grokUsage.weekly.resetDescription ? (
               <span className="text-muted-foreground">
                 {translate(
-                  'auto.components.settings.GrokAccountsSection.resets',
+                  'auto.components.settings.GrokAccountsSection.c6d1a8f4e2',
                   'Resets {{when}}',
                   { when: grokUsage.weekly.resetDescription }
                 )}

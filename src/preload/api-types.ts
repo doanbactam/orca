@@ -351,6 +351,7 @@ import type {
 } from '../shared/claude-usage-types'
 import type {
   CodexRateLimitResetResult,
+  GrokAccountStatus,
   RateLimitRuntimeTarget,
   RateLimitState
 } from '../shared/rate-limit-types'
@@ -2882,13 +2883,7 @@ export type PreloadApi = {
     clearCookie: () => Promise<{ configured: boolean }>
   }
   grokAccounts: {
-    getStatus: () => Promise<{
-      signedIn: boolean
-      email: string | null
-      teamId: string | null
-      tokenFresh: boolean
-      error: string | null
-    }>
+    getStatus: () => Promise<GrokAccountStatus>
   }
   ssh: {
     listTargets: () => Promise<SshTarget[]>

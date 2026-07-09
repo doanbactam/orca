@@ -95,6 +95,14 @@ export type InactiveAccountUsage = {
   isFetching: boolean
 }
 
+export type GrokAccountStatus = {
+  signedIn: boolean
+  email: string | null
+  teamId: string | null
+  tokenFresh: boolean
+  error: string | null
+}
+
 export type RateLimitState = {
   claude: ProviderRateLimits | null
   codex: ProviderRateLimits | null
@@ -110,9 +118,7 @@ export type RateLimitState = {
    * between snapshot refreshes.
    */
   minimaxCookieConfigured: boolean
-  /**
-   * True when Grok CLI OAuth credentials exist in ~/.grok/auth.json (or GROK_HOME).
-   */
+  /** True when ~/.grok/auth.json (or GROK_HOME) has a Grok CLI OAuth session. */
   grokAuthConfigured: boolean
   claudeTarget: RateLimitRuntimeTarget
   codexTarget: RateLimitRuntimeTarget

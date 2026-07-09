@@ -1,12 +1,5 @@
+import type { GrokAccountStatus } from '../../shared/rate-limit-types'
 import { isGrokAccessTokenFresh, readGrokAuthSession } from '../rate-limits/grok-auth'
-
-export type GrokAccountStatus = {
-  signedIn: boolean
-  email: string | null
-  teamId: string | null
-  tokenFresh: boolean
-  error: string | null
-}
 
 export function getGrokAccountStatus(): GrokAccountStatus {
   const readResult = readGrokAuthSession()

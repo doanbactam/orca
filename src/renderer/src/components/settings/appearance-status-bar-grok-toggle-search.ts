@@ -11,9 +11,9 @@ export function getGrokStatusBarToggleSearchEntry(): {
 } {
   return {
     id: 'grok',
-    title: translate('auto.components.settings.appearance.search.grokUsage', 'Grok Usage'),
+    title: translate('auto.components.settings.appearance.search.f8e2a1c4b6', 'Grok Usage'),
     description: translate(
-      'auto.components.settings.appearance.search.grokUsageDesc',
+      'auto.components.settings.appearance.search.e7d1b0f3a5',
       'Show Grok weekly credit usage from Grok CLI OAuth.'
     ),
     keywords: [
@@ -21,8 +21,8 @@ export function getGrokStatusBarToggleSearchEntry(): {
         'auto.components.settings.appearance.search.896eb53fd4',
         'status bar'
       ),
-      ...translateSearchKeyword('auto.components.settings.appearance.search.grokKw', 'grok'),
-      ...translateSearchKeyword('auto.components.settings.appearance.search.xaiKw', 'xai'),
+      ...translateSearchKeyword('auto.components.settings.appearance.search.d6c0a9e2f4', 'grok'),
+      ...translateSearchKeyword('auto.components.settings.appearance.search.c5b9f8d1e3', 'xai'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.00a028f25f', 'usage'),
       ...translateSearchKeyword(
         'auto.components.settings.appearance.search.de586def95',

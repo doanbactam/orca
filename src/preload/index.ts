@@ -79,6 +79,7 @@ import type {
 } from '../shared/mobile-markdown-document'
 import type {
   CodexRateLimitResetResult,
+  GrokAccountStatus,
   RateLimitRuntimeTarget,
   RateLimitState
 } from '../shared/rate-limit-types'
@@ -3867,13 +3868,7 @@ const api = {
   },
 
   grokAccounts: {
-    getStatus: (): Promise<{
-      signedIn: boolean
-      email: string | null
-      teamId: string | null
-      tokenFresh: boolean
-      error: string | null
-    }> => ipcRenderer.invoke('grokAccounts:getStatus')
+    getStatus: (): Promise<GrokAccountStatus> => ipcRenderer.invoke('grokAccounts:getStatus')
   },
 
   ssh: {

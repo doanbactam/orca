@@ -8,10 +8,8 @@ export type UsageProviderSettings = Pick<
   | 'opencodeSessionCookie'
   | 'geminiCliOAuthEnabled'
 > & {
-  // Why: the MiniMax cookie lives in the file system, not GlobalSettings, so
-  // we can't derive durability from settings alone. The renderer threads the
-  // flag from RateLimitState (pushed by the main process) so the bar stays
-  // visible across reloads and between snapshot refreshes.
+  // Why: MiniMax cookie and Grok CLI auth are not in GlobalSettings; main pushes
+  // these flags on RateLimitState so the bar stays visible across reloads.
   minimaxCookieConfigured: boolean
   grokAuthConfigured: boolean
 }
