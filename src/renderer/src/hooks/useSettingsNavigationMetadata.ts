@@ -424,7 +424,7 @@ export function buildSettingsNavigationMetadata({
       title: translate('auto.hooks.useSettingsNavigationMetadata.d72a58b5b9', 'Stats & Usage'),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.b351014180',
-        'Orca stats plus Claude, Codex, and OpenCode usage analytics.'
+        'Orca stats, subscription usage (Grok CLI, Kimi, MiniMax), and Claude/Codex/OpenCode token analytics.'
       ),
       icon: BarChart3,
       searchEntries: getStatsPaneSearchEntries(),
