@@ -6,7 +6,6 @@ import { ClaudeUsagePane } from './ClaudeUsagePane'
 import { CodexUsagePane } from './CodexUsagePane'
 import { GrokUsagePane } from './GrokUsagePane'
 import { OpenCodeUsagePane } from './OpenCodeUsagePane'
-import { SubscriptionUsageSection } from './SubscriptionUsageSection'
 import { UsageOverviewPane } from './UsageOverviewPane'
 import { Button } from '../ui/button'
 import {
@@ -145,8 +144,6 @@ export function StatsPane(): React.JSX.Element {
           )}
         </div>
       ) : null}
-
-      <SubscriptionUsageSection />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">

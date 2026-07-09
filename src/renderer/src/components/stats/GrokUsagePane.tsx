@@ -1,10 +1,9 @@
 import { useEffect } from 'react'
 import { CalendarClock, ExternalLink, RefreshCw, Sparkles } from 'lucide-react'
-import { AgentIcon } from '@/lib/agent-catalog'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '../../store'
-import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { StatCard } from './StatCard'
 import { formatUpdatedAt } from './usage-formatters'
 
@@ -25,6 +24,8 @@ export function GrokUsagePane(): React.JSX.Element {
     openSettingsPage()
   }
 
+  const paneTitle = translate('auto.components.stats.GrokUsagePane.g8h9i0j1k2', 'Grok usage')
+
   if (!grokAuthConfigured) {
     return (
       <div
@@ -33,14 +34,11 @@ export function GrokUsagePane(): React.JSX.Element {
       >
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <AgentIcon agent="grok" size={16} />
-              {translate('auto.components.stats.GrokUsagePane.a1c2e3f4b5', 'Grok usage')}
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">{paneTitle}</h3>
             <p className="text-sm text-muted-foreground">
               {translate(
                 'auto.components.stats.GrokUsagePane.b2d3e4f5c6',
-                'Weekly subscription credits from Grok CLI OAuth (~/.grok/auth.json), not local chat logs.'
+                'Weekly subscription credits from Grok CLI OAuth (~/.grok/auth.json). Same source as the status bar.'
               )}
             </p>
           </div>
@@ -67,67 +65,77 @@ export function GrokUsagePane(): React.JSX.Element {
   const isFetching = grok?.status === 'fetching'
 
   return (
-    <div className="space-y-4" data-testid="grok-usage-pane">
-      <div className="rounded-lg border border-border/60 bg-card/40 p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 space-y-1">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <AgentIcon agent="grok" size={16} />
-              {translate('auto.components.stats.GrokUsagePane.a1c2e3f4b5', 'Grok usage')}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {formatUpdatedAt(grok?.updatedAt ?? null)}
-              {grok?.error ? ` — ${grok.error}` : ''}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1"
-            disabled={isFetching}
-            onClick={() => void refreshRateLimits()}
-          >
-            <RefreshCw className={`size-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-            {translate('auto.components.stats.GrokUsagePane.d4f5a6b7c8', 'Refresh')}
-          </Button>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <StatCard
-            label={translate(
-              'auto.components.stats.GrokUsagePane.e5a6b7c8d9',
-              'Weekly credits used'
-            )}
-            value={weeklyPercent !== null ? `${weeklyPercent}%` : '—'}
-            icon={<Sparkles className="size-4" />}
-          />
-          <StatCard
-            label={translate(
-              'auto.components.stats.GrokUsagePane.f6b7c8d9e0',
-              'Billing period reset'
-            )}
-            value={grok?.weekly?.resetDescription ?? '—'}
-            icon={<CalendarClock className="size-4" />}
-          />
-        </div>
-
-        {grok?.usageMetadata?.authProvenance ? (
-          <p className="mt-3 truncate text-xs text-muted-foreground">
-            {grok.usageMetadata.authProvenance}
+    <div
+      className="space-y-4 rounded-lg border border-border/60 bg-card/30 p-4"
+      data-testid="grok-usage-pane"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-semibold text-foreground">{paneTitle}</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {formatUpdatedAt(grok?.updatedAt ?? null)}
+            {grok?.error
+              ? translate('auto.components.stats.GrokUsagePane.h9i0j1k2l3', ' • {{value0}}', {
+                  value0: grok.error
+                })
+              : ''}
           </p>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {weeklyPercent !== null ? (
-            <Badge variant="secondary" className="tabular-nums">
-              {weeklyPercent}%
-            </Badge>
-          ) : null}
-          <Button variant="ghost" size="sm" className="gap-1" onClick={openGrokAccounts}>
-            {translate('auto.components.stats.GrokUsagePane.a7b8c9d0e1', 'Grok account settings')}
-            <ExternalLink className="size-3" />
-          </Button>
         </div>
+        <div className="flex shrink-0 items-center gap-2 self-start">
+          <TooltipProvider delayDuration={250}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => void refreshRateLimits()}
+                  disabled={isFetching}
+                  aria-label={translate(
+                    'auto.components.stats.GrokUsagePane.i0j1k2l3m4',
+                    'Refresh Grok usage'
+                  )}
+                >
+                  <RefreshCw className={`size-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={6}>
+                {translate('auto.components.stats.GrokUsagePane.d4f5a6b7c8', 'Refresh')}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <StatCard
+          label={translate('auto.components.stats.GrokUsagePane.e5a6b7c8d9', 'Weekly credits used')}
+          value={weeklyPercent !== null ? `${weeklyPercent}%` : '—'}
+          icon={<Sparkles className="size-4" />}
+        />
+        <StatCard
+          label={translate(
+            'auto.components.stats.GrokUsagePane.f6b7c8d9e0',
+            'Billing period reset'
+          )}
+          value={grok?.weekly?.resetDescription ?? '—'}
+          icon={<CalendarClock className="size-4" />}
+        />
+      </div>
+
+      {grok?.usageMetadata?.authProvenance ? (
+        <p className="px-1 text-xs text-muted-foreground">{grok.usageMetadata.authProvenance}</p>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-2 px-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto gap-1 px-0 text-xs"
+          onClick={openGrokAccounts}
+        >
+          {translate('auto.components.stats.GrokUsagePane.a7b8c9d0e1', 'Grok account settings')}
+          <ExternalLink className="size-3" />
+        </Button>
       </div>
     </div>
   )
