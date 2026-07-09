@@ -125,7 +125,9 @@ function mapBillingResponse(
 }
 
 // Why: Orca never runs grok login; it only reads the session file the CLI updates.
-export async function fetchGrokRateLimits(): Promise<ProviderRateLimits> {
+export async function fetchGrokRateLimits(
+  options: { signal?: AbortSignal } = {}
+): Promise<ProviderRateLimits> {
   const readResult = readGrokAuthSession()
   if (readResult.status === 'missing') {
     return result('unavailable', 'Not signed in to Grok — run grok login')
@@ -139,9 +141,12 @@ export async function fetchGrokRateLimits(): Promise<ProviderRateLimits> {
   }
 
   try {
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, AbortSignal.timeout(API_TIMEOUT_MS)])
+      : AbortSignal.timeout(API_TIMEOUT_MS)
     const res = await net.fetch(BILLING_CREDITS_URL, {
       headers: grokRequestHeaders(session),
-      signal: AbortSignal.timeout(API_TIMEOUT_MS)
+      signal
     })
     if (res.status === 401 || res.status === 403) {
       return result('error', `Grok usage request unauthorized (HTTP ${res.status})`)

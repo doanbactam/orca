@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { CalendarClock, ExternalLink, RefreshCw, Sparkles } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '../../store'
@@ -14,10 +13,6 @@ export function GrokUsagePane(): React.JSX.Element {
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
-
-  useEffect(() => {
-    void refreshRateLimits()
-  }, [refreshRateLimits])
 
   const openGrokAccounts = (): void => {
     openSettingsTarget({ pane: 'accounts', repoId: null, sectionId: 'accounts-grok' })

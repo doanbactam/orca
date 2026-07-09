@@ -366,7 +366,7 @@ describe('RateLimitService', () => {
 
   it('aborts the active fetch cycle and clears queued refreshes on stop', async () => {
     const service = new RateLimitService()
-    const capturedSignals: { claude?: AbortSignal; codex?: AbortSignal } = {}
+    const capturedSignals: { claude?: AbortSignal; codex?: AbortSignal; grok?: AbortSignal } = {}
 
     vi.mocked(fetchClaudeRateLimits).mockImplementation(
       (options) =>
@@ -390,6 +390,17 @@ describe('RateLimitService', () => {
           )
         })
     )
+    vi.mocked(fetchGrokRateLimits).mockImplementation(
+      (options) =>
+        new Promise((resolve) => {
+          capturedSignals.grok = options?.signal
+          options?.signal?.addEventListener(
+            'abort',
+            () => resolve(errorProvider('grok', 'aborted')),
+            { once: true }
+          )
+        })
+    )
 
     const activeFetch = serviceInternals(service).fetchAll()
     await Promise.resolve()
@@ -402,12 +413,14 @@ describe('RateLimitService', () => {
 
     expect(capturedSignals.claude?.aborted).toBe(true)
     expect(capturedSignals.codex?.aborted).toBe(true)
+    expect(capturedSignals.grok?.aborted).toBe(true)
 
     await queuedRefresh
     await activeFetch
 
     expect(fetchClaudeRateLimits).toHaveBeenCalledTimes(1)
     expect(fetchCodexRateLimits).toHaveBeenCalledTimes(1)
+    expect(fetchGrokRateLimits).toHaveBeenCalledTimes(1)
   })
 
   it('aborts inactive Claude preview fetches on stop', async () => {
@@ -499,6 +512,7 @@ describe('RateLimitService', () => {
     expect(fetchGeminiRateLimits).toHaveBeenCalledWith(true)
     expect(fetchOpenCodeGoRateLimits).toHaveBeenCalledTimes(1)
     expect(fetchOpenCodeGoRateLimits).toHaveBeenCalledWith('session=abc123', undefined)
+    expect(fetchGrokRateLimits).toHaveBeenCalledWith({ signal: expect.any(AbortSignal) })
 
     const state = service.getState()
     expect(state.claude?.status).toBe('ok')

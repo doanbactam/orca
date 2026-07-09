@@ -100,6 +100,31 @@ describe('fetchGrokRateLimits', () => {
     )
   })
 
+  it('aborts the billing request when the caller aborts', async () => {
+    authState.file = freshAuthJson()
+    const controller = new AbortController()
+    let requestSignal: AbortSignal | undefined
+    netFetchMock.mockImplementationOnce((_url, init: RequestInit) => {
+      requestSignal = init.signal as AbortSignal
+      return new Promise((_resolve, reject) => {
+        requestSignal?.addEventListener('abort', () => reject(new Error('aborted')), {
+          once: true
+        })
+      })
+    })
+
+    const resultPromise = fetchGrokRateLimits({ signal: controller.signal })
+    await Promise.resolve()
+
+    expect(requestSignal?.aborted).toBe(false)
+    controller.abort()
+    expect(requestSignal?.aborted).toBe(true)
+
+    const result = await resultPromise
+    expect(result.status).toBe('error')
+    expect(result.error).toBe('aborted')
+  })
+
   it('returns error when the session token is expired', async () => {
     authState.file = JSON.stringify({
       'https://auth.x.ai::client': {

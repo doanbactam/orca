@@ -1141,7 +1141,7 @@ export class RateLimitService {
             groupId: miniMaxGroupId,
             models: miniMaxModels
           }),
-      fetchGrokRateLimits()
+      fetchGrokRateLimits({ signal })
     ])
 
     if (signal.aborted) {
