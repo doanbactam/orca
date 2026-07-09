@@ -1,6 +1,11 @@
 import { net } from 'electron'
 import type { ProviderRateLimits, RateLimitWindow } from '../../shared/rate-limit-types'
-import { isGrokAccessTokenFresh, readGrokAuthSession, type GrokAuthSession } from './grok-auth'
+import {
+  isGrokAccessTokenFresh,
+  readGrokAuthSession,
+  type GrokAuthReadResult,
+  type GrokAuthSession
+} from './grok-auth'
 
 // Why: billing URL and headers must match Grok CLI or xAI rejects the request.
 const GROK_CLI_PROXY_BASE =
@@ -126,9 +131,9 @@ function mapBillingResponse(
 
 // Why: Orca never runs grok login; it only reads the session file the CLI updates.
 export async function fetchGrokRateLimits(
-  options: { signal?: AbortSignal } = {}
+  options: { signal?: AbortSignal; authReadResult?: GrokAuthReadResult } = {}
 ): Promise<ProviderRateLimits> {
-  const readResult = readGrokAuthSession()
+  const readResult = options.authReadResult ?? readGrokAuthSession()
   if (readResult.status === 'missing') {
     return result('unavailable', 'Not signed in to Grok — run grok login')
   }
