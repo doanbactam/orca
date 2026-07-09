@@ -28,7 +28,8 @@
         "minimaxToggleDescription": "활성 워크스페이스의 MiniMax 구독 사용량을 표시합니다.",
         "sshToggleDescription": "사용 가능한 SSH 및 원격 Orca 호스트가 있으면 표시합니다.",
         "resourceUsageToggleDescription": "리소스 관리자를 표시합니다. 클릭하면 CPU, 메모리, 세션, 데몬 제어, 워크스페이스 디스크 스캔을 볼 수 있습니다.",
-        "portsToggleDescription": "라이브 워크스페이스 포트를 표시합니다. 워크스페이스 범위 포트 및 외부 수신기를 보려면 클릭하세요."
+        "portsToggleDescription": "라이브 워크스페이스 포트를 표시합니다. 워크스페이스 범위 포트 및 외부 수신기를 보려면 클릭하세요.",
+        "grokToggleDescription": "Show Grok subscription credit usage when signed in via Grok CLI."
       }
     }
   },
@@ -3029,7 +3030,9 @@
             "c0e972d726": "취소",
             "06741a2f3d": "MiniMax 사용량 세부 정보 열기",
             "3bbf140864": "MiniMax 사용량",
-            "remoteServerLabel": "원격 서버"
+            "remoteServerLabel": "원격 서버",
+            "grokUsageAria": "Open Grok usage details",
+            "grokUsageMenu": "Grok Usage"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "계정 연결",
@@ -3377,7 +3380,8 @@
           "b2cf4310ce": "개요",
           "908c470587": "codex",
           "eb6a066185": "claude",
-          "eee19cfade": "개요"
+          "eee19cfade": "개요",
+          "grokUsageTab": "Grok"
         },
         "UsageOverviewPane": {
           "22ed1b7669": "세션",
@@ -3429,7 +3433,14 @@
             "0e2a0b6431": "사용량",
             "372debfac0": "통계",
             "26bb901fcd": "Orca 통계, Claude/Codex/OpenCode 통합 사용량 분석, 토큰, 캐시, 모델, 세션",
-            "cb2430ae6a": "통계 및 사용량"
+            "cb2430ae6a": "통계 및 사용량",
+            "f8a1b2c3d4": "grok",
+            "e7f0a1b2c3": "subscription",
+            "d6e9f0a1b2": "credits",
+            "c5d8e9f0a1": "minimax",
+            "b4c7d8e9f0": "kimi",
+            "a3b6c7d8e9": "grok usage",
+            "9f2a3b4c5d": "xai"
           }
         },
         "usage": {
@@ -3479,6 +3490,17 @@
           "faf3444859": "입력",
           "a8b7487ff7": "출력",
           "cfe2282ffa": "알 수 없음"
+        },
+        "GrokUsagePane": {
+          "g8h9i0j1k2": "Grok usage",
+          "b2d3e4f5c6": "Weekly subscription credits from Grok CLI OAuth (~/.grok/auth.json). Same source as the status bar.",
+          "c3e4f5a6b7": "Set up in Accounts",
+          "h9i0j1k2l3": " • {{value0}}",
+          "i0j1k2l3m4": "Refresh Grok usage",
+          "d4f5a6b7c8": "Refresh",
+          "e5a6b7c8d9": "Weekly credits used",
+          "f6b7c8d9e0": "Billing period reset",
+          "a7b8c9d0e1": "Grok account settings"
         }
       },
       "sparse": {
@@ -6917,7 +6939,9 @@
             "b84a5b0c8a": "이 장치 또는 WSL에서 공급자 계정을 검사하고 추가할지 선택합니다.",
             "d09fb5ca92": "계정 위치",
             "733f9e2a93": "MiniMax 사용량",
-            "f8374c3151": "로컬 rate-limit 가져오기에 사용할 platform.minimax.io 세션 Cookie를 붙여넣으세요."
+            "f8374c3151": "로컬 rate-limit 가져오기에 사용할 platform.minimax.io 세션 Cookie를 붙여넣으세요.",
+            "f4a8c2e1b7": "Grok (xAI) Usage",
+            "e3b7d1f9a2": "OAuth sign-in via Grok CLI (grok login) for weekly credit usage."
           }
         },
         "advanced": {
@@ -7131,7 +7155,9 @@
               "cardLayout": "카드 레이아웃",
               "workspaceOptions": "워크스페이스 옵션",
               "detailed": "상세"
-            }
+            },
+            "f8e2a1c4b6": "Grok Usage",
+            "e7d1b0f3a5": "Show Grok weekly credit usage from Grok CLI OAuth."
           }
         },
         "auto": {
@@ -8923,6 +8949,21 @@
               }
             }
           }
+        },
+        "GrokAccountsSection": {
+          "a1b2c3d4e5": "Grok (xAI)",
+          "f6e5d4c3b2": "Shows weekly credit usage from your Grok CLI sign-in (session file ~/.grok/auth.json).",
+          "0d8e77bc40": "Grok CLI docs",
+          "ad47a33f72": "Loading…",
+          "b2c3d4e5f6": "Signed in",
+          "c3d4e5f6a7": "Signed in. Orca only reads that file on disk — run grok login again if usage fails.",
+          "d4e5f6a7b8": "Session expired — run grok login in a terminal to refresh.",
+          "e5f6a7b8c9": "Not signed in to Grok CLI",
+          "f6a7b8c9d0": "In a terminal, run grok login, then click Refresh usage here.",
+          "3325d996cb": "Refresh usage",
+          "a8f3e2c1b4": "Weekly credits",
+          "b7e2d9f0a3": "Same weekly credit % as the grok /usage screen in the terminal.",
+          "c6d1a8f4e2": "Resets {{when}}"
         }
       },
       "right": {

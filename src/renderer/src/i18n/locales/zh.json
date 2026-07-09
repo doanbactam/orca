@@ -28,7 +28,8 @@
         "minimaxToggleDescription": "显示当前工作区的 MiniMax 订阅使用情况。",
         "sshToggleDescription": "当有可用的 SSH 和远程 Orca 主机时显示它们。",
         "resourceUsageToggleDescription": "显示资源管理器。点击可查看 CPU、内存、会话、守护进程控制和工作区磁盘扫描。",
-        "portsToggleDescription": "显示实时工作区端口。单击它可获取工作区范围的端口和外部侦听器。"
+        "portsToggleDescription": "显示实时工作区端口。单击它可获取工作区范围的端口和外部侦听器。",
+        "grokToggleDescription": "Show Grok subscription credit usage when signed in via Grok CLI."
       }
     }
   },
@@ -3029,7 +3030,9 @@
             "c0e972d726": "取消",
             "06741a2f3d": "打开 MiniMax 使用量详情",
             "3bbf140864": "MiniMax 使用量",
-            "remoteServerLabel": "远程服务器"
+            "remoteServerLabel": "远程服务器",
+            "grokUsageAria": "Open Grok usage details",
+            "grokUsageMenu": "Grok Usage"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "连接账户",
@@ -3377,7 +3380,8 @@
           "b2cf4310ce": "概览",
           "908c470587": "codex",
           "eb6a066185": "claude",
-          "eee19cfade": "概览"
+          "eee19cfade": "概览",
+          "grokUsageTab": "Grok"
         },
         "UsageOverviewPane": {
           "22ed1b7669": "会话",
@@ -3429,7 +3433,14 @@
             "0e2a0b6431": "用法",
             "372debfac0": "统计数据",
             "26bb901fcd": "Orca 统计数据以及 Claude、Codex 和 OpenCode 的综合使用分析、Token、缓存、模型和会话。",
-            "cb2430ae6a": "统计和使用情况"
+            "cb2430ae6a": "统计和使用情况",
+            "f8a1b2c3d4": "grok",
+            "e7f0a1b2c3": "subscription",
+            "d6e9f0a1b2": "credits",
+            "c5d8e9f0a1": "minimax",
+            "b4c7d8e9f0": "kimi",
+            "a3b6c7d8e9": "grok usage",
+            "9f2a3b4c5d": "xai"
           }
         },
         "usage": {
@@ -3479,6 +3490,17 @@
           "faf3444859": "输入",
           "a8b7487ff7": "输出",
           "cfe2282ffa": "未知"
+        },
+        "GrokUsagePane": {
+          "g8h9i0j1k2": "Grok usage",
+          "b2d3e4f5c6": "Weekly subscription credits from Grok CLI OAuth (~/.grok/auth.json). Same source as the status bar.",
+          "c3e4f5a6b7": "Set up in Accounts",
+          "h9i0j1k2l3": " • {{value0}}",
+          "i0j1k2l3m4": "Refresh Grok usage",
+          "d4f5a6b7c8": "Refresh",
+          "e5a6b7c8d9": "Weekly credits used",
+          "f6b7c8d9e0": "Billing period reset",
+          "a7b8c9d0e1": "Grok account settings"
         }
       },
       "sparse": {
@@ -6917,7 +6939,9 @@
             "b84a5b0c8a": "选择是否在此设备上或 WSL 中检查和添加提供商账户。",
             "d09fb5ca92": "账户位置",
             "733f9e2a93": "MiniMax 使用量",
-            "f8374c3151": "粘贴 platform.minimax.io 会话 Cookie 以在本地获取速率限制。"
+            "f8374c3151": "粘贴 platform.minimax.io 会话 Cookie 以在本地获取速率限制。",
+            "f4a8c2e1b7": "Grok (xAI) Usage",
+            "e3b7d1f9a2": "OAuth sign-in via Grok CLI (grok login) for weekly credit usage."
           }
         },
         "advanced": {
@@ -7131,7 +7155,9 @@
               "detailed": "详细"
             },
             "9a115966d3": "关闭时最小化到托盘",
-            "4d5b9427b5": "启用后，关闭窗口会让 Orca 继续在系统托盘中运行，而不是退出。"
+            "4d5b9427b5": "启用后，关闭窗口会让 Orca 继续在系统托盘中运行，而不是退出。",
+            "f8e2a1c4b6": "Grok Usage",
+            "e7d1b0f3a5": "Show Grok weekly credit usage from Grok CLI OAuth."
           }
         },
         "auto": {
@@ -8923,6 +8949,21 @@
               }
             }
           }
+        },
+        "GrokAccountsSection": {
+          "a1b2c3d4e5": "Grok (xAI)",
+          "f6e5d4c3b2": "Shows weekly credit usage from your Grok CLI sign-in (session file ~/.grok/auth.json).",
+          "0d8e77bc40": "Grok CLI docs",
+          "ad47a33f72": "Loading…",
+          "b2c3d4e5f6": "Signed in",
+          "c3d4e5f6a7": "Signed in. Orca only reads that file on disk — run grok login again if usage fails.",
+          "d4e5f6a7b8": "Session expired — run grok login in a terminal to refresh.",
+          "e5f6a7b8c9": "Not signed in to Grok CLI",
+          "f6a7b8c9d0": "In a terminal, run grok login, then click Refresh usage here.",
+          "3325d996cb": "Refresh usage",
+          "a8f3e2c1b4": "Weekly credits",
+          "b7e2d9f0a3": "Same weekly credit % as the grok /usage screen in the terminal.",
+          "c6d1a8f4e2": "Resets {{when}}"
         }
       },
       "right": {
