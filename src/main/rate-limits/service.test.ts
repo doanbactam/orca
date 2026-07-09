@@ -10,6 +10,8 @@ import { fetchClaudeRateLimits, fetchManagedAccountUsage } from './claude-fetche
 import { fetchCodexRateLimits } from './codex-fetcher'
 import { fetchGeminiRateLimits } from './gemini-usage-fetcher'
 import { fetchMiniMaxRateLimits } from './minimax-fetcher'
+import { fetchGrokRateLimits } from './grok-fetcher'
+import { hasGrokAuthSession } from './grok-auth'
 import { fetchOpenCodeGoRateLimits } from './opencode-go-usage-fetcher'
 import { hasMiniMaxSessionCookie } from '../minimax/minimax-cookie-store'
 
@@ -34,6 +36,14 @@ vi.mock('./minimax-fetcher', () => ({
   fetchMiniMaxRateLimits: vi.fn()
 }))
 
+vi.mock('./grok-fetcher', () => ({
+  fetchGrokRateLimits: vi.fn()
+}))
+
+vi.mock('./grok-auth', () => ({
+  hasGrokAuthSession: vi.fn(() => false)
+}))
+
 vi.mock('../minimax/minimax-cookie-store', () => ({
   hasMiniMaxSessionCookie: vi.fn(() => false)
 }))
@@ -52,7 +62,7 @@ function deferred<T>(): Deferred<T> {
 }
 
 function okProvider(
-  provider: 'claude' | 'codex' | 'gemini' | 'opencode-go' | 'minimax',
+  provider: 'claude' | 'codex' | 'gemini' | 'opencode-go' | 'minimax' | 'grok',
   usedPercent: number,
   updatedAt = Date.now()
 ): ProviderRateLimits {
@@ -72,7 +82,7 @@ function okProvider(
 }
 
 function errorProvider(
-  provider: 'claude' | 'codex' | 'gemini' | 'opencode-go' | 'minimax',
+  provider: 'claude' | 'codex' | 'gemini' | 'opencode-go' | 'minimax' | 'grok',
   message: string
 ): ProviderRateLimits {
   return {
@@ -127,7 +137,16 @@ describe('RateLimitService', () => {
     vi.mocked(fetchGeminiRateLimits).mockResolvedValue(okProvider('gemini', 0, Date.now()))
     vi.mocked(fetchOpenCodeGoRateLimits).mockResolvedValue(okProvider('opencode-go', 0, Date.now()))
     vi.mocked(fetchMiniMaxRateLimits).mockResolvedValue(okProvider('minimax', 0, Date.now()))
+    vi.mocked(fetchGrokRateLimits).mockResolvedValue({
+      provider: 'grok',
+      session: null,
+      weekly: null,
+      updatedAt: Date.now(),
+      error: null,
+      status: 'unavailable'
+    })
     vi.mocked(hasMiniMaxSessionCookie).mockReturnValue(false)
+    vi.mocked(hasGrokAuthSession).mockReturnValue(false)
   })
 
   it('does not refetch Claude when a Codex account switch is queued during fetchAll', async () => {

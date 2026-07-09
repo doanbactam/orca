@@ -3866,6 +3866,16 @@ const api = {
       ipcRenderer.invoke('minimaxCredentials:clearCookie')
   },
 
+  grokAccounts: {
+    getStatus: (): Promise<{
+      signedIn: boolean
+      email: string | null
+      teamId: string | null
+      tokenFresh: boolean
+      error: string | null
+    }> => ipcRenderer.invoke('grokAccounts:getStatus')
+  },
+
   ssh: {
     listTargets: (): Promise<SshTarget[]> => ipcRenderer.invoke('ssh:listTargets'),
 

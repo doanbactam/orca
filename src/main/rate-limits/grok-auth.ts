@@ -1,0 +1,107 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
+
+// Why: align with Grok CLI's GROK_HOME resolution so Orca reads the same
+// auth.json the running `grok` session uses.
+export function getGrokHome(): string {
+  return process.env.GROK_HOME?.trim() || join(homedir(), '.grok')
+}
+
+export function getGrokAuthPath(): string {
+  return join(getGrokHome(), 'auth.json')
+}
+
+export type GrokAuthSession = {
+  accessToken: string
+  userId: string | null
+  email: string | null
+  teamId: string | null
+  expiresAtMs: number | null
+  oidcClientId: string | null
+}
+
+type GrokAuthEntry = {
+  key?: string
+  user_id?: string
+  email?: string
+  team_id?: string
+  expires_at?: string
+  oidc_client_id?: string
+}
+
+export type GrokAuthReadResult =
+  | { status: 'missing' }
+  | { status: 'error'; error: string }
+  | { status: 'ok'; session: GrokAuthSession }
+
+function parseAuthEntry(value: unknown): GrokAuthEntry | null {
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+  const entry = value as GrokAuthEntry
+  if (typeof entry.key !== 'string' || entry.key.length === 0) {
+    return null
+  }
+  return entry
+}
+
+function parseExpiresAtMs(iso: string | undefined): number | null {
+  if (!iso) {
+    return null
+  }
+  const ms = Date.parse(iso)
+  return Number.isFinite(ms) ? ms : null
+}
+
+export function readGrokAuthSession(): GrokAuthReadResult {
+  const path = getGrokAuthPath()
+  if (!existsSync(path)) {
+    return { status: 'missing' }
+  }
+  try {
+    const parsed: unknown = JSON.parse(readFileSync(path, 'utf-8'))
+    if (typeof parsed !== 'object' || parsed === null) {
+      return { status: 'error', error: 'Grok auth file is invalid' }
+    }
+    for (const entry of Object.values(parsed)) {
+      const authEntry = parseAuthEntry(entry)
+      if (!authEntry?.key) {
+        continue
+      }
+      return {
+        status: 'ok',
+        session: {
+          accessToken: authEntry.key,
+          userId: typeof authEntry.user_id === 'string' ? authEntry.user_id : null,
+          email: typeof authEntry.email === 'string' ? authEntry.email : null,
+          teamId: typeof authEntry.team_id === 'string' ? authEntry.team_id : null,
+          expiresAtMs: parseExpiresAtMs(authEntry.expires_at),
+          oidcClientId:
+            typeof authEntry.oidc_client_id === 'string' ? authEntry.oidc_client_id : null
+        }
+      }
+    }
+    return { status: 'error', error: 'Grok auth file has no session token' }
+  } catch (err) {
+    return {
+      status: 'error',
+      error: err instanceof Error ? err.message : 'Unable to read Grok auth file'
+    }
+  }
+}
+
+export function hasGrokAuthSession(): boolean {
+  return readGrokAuthSession().status === 'ok'
+}
+
+const TOKEN_SKEW_MS = 5 * 60 * 1000
+
+export function isGrokAccessTokenFresh(session: GrokAuthSession): boolean {
+  if (session.expiresAtMs === null) {
+    // Why: Grok may omit expiry for some auth modes; treat as fresh and let the
+    // billing endpoint return 401 if the token is actually dead.
+    return true
+  }
+  return session.expiresAtMs - Date.now() > TOKEN_SKEW_MS
+}

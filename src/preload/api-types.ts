@@ -2881,6 +2881,15 @@ export type PreloadApi = {
     saveCookie: (cookie: string) => Promise<{ configured: boolean }>
     clearCookie: () => Promise<{ configured: boolean }>
   }
+  grokAccounts: {
+    getStatus: () => Promise<{
+      signedIn: boolean
+      email: string | null
+      teamId: string | null
+      tokenFresh: boolean
+      error: string | null
+    }>
+  }
   ssh: {
     listTargets: () => Promise<SshTarget[]>
     // Removed-target id → last known label, for showing a friendly host name on

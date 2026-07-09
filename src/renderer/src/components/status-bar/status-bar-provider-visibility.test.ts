@@ -71,6 +71,7 @@ function usageSettings(overrides: Partial<UsageProviderSettings> = {}): UsagePro
     opencodeSessionCookie: '',
     geminiCliOAuthEnabled: false,
     minimaxCookieConfigured: false,
+    grokAuthConfigured: false,
     ...overrides
   }
 }
@@ -271,7 +272,8 @@ describe('isUsageEmptyState', () => {
           gemini: null,
           opencodeGo: null,
           kimi: null,
-          minimax: null
+          minimax: null,
+          grok: null
         },
         usageSettings()
       )
@@ -287,7 +289,8 @@ describe('isUsageEmptyState', () => {
           gemini: provider('unavailable'),
           opencodeGo: provider('unavailable', { provider: 'opencode-go' }),
           kimi: provider('unavailable', { provider: 'kimi' }),
-          minimax: provider('unavailable', { provider: 'minimax' })
+          minimax: provider('unavailable', { provider: 'minimax' }),
+          grok: provider('unavailable', { provider: 'grok' })
         },
         usageSettings()
       )
@@ -303,7 +306,8 @@ describe('isUsageEmptyState', () => {
           gemini: provider('unavailable'),
           opencodeGo: provider('unavailable', { provider: 'opencode-go' }),
           kimi: provider('unavailable', { provider: 'kimi' }),
-          minimax: provider('unavailable', { provider: 'minimax' })
+          minimax: provider('unavailable', { provider: 'minimax' }),
+          grok: provider('unavailable', { provider: 'grok' })
         },
         usageSettings({
           codexManagedAccounts: [
@@ -330,7 +334,8 @@ describe('isUsageEmptyState', () => {
           gemini: null,
           opencodeGo: null,
           kimi: null,
-          minimax: null
+          minimax: null,
+          grok: null
         },
         null
       )
@@ -346,7 +351,8 @@ describe('isUsageEmptyState', () => {
           gemini: provider('unavailable'),
           opencodeGo: provider('unavailable', { provider: 'opencode-go' }),
           kimi: provider('unavailable', { provider: 'kimi' }),
-          minimax: provider('unavailable', { provider: 'minimax' })
+          minimax: provider('unavailable', { provider: 'minimax' }),
+          grok: provider('unavailable', { provider: 'grok' })
         },
         usageSettings()
       )

@@ -191,11 +191,33 @@ export const getAccountsMiniMaxSearchEntries = createLocalizedCatalog(() => [
   }
 ])
 
+export const getAccountsGrokSearchEntries = createLocalizedCatalog(() => [
+  {
+    title: translate('auto.components.settings.accounts.search.grokTitle', 'Grok (xAI) Usage'),
+    description: translate(
+      'auto.components.settings.accounts.search.grokDesc',
+      'OAuth sign-in via Grok CLI (grok login) for weekly credit usage.'
+    ),
+    keywords: [
+      ...translateSearchKeyword('auto.components.settings.accounts.search.grokKw', 'grok'),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.xaiKw', 'xai'),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.oauthKw', 'oauth'),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.loginKw', 'login'),
+      ...translateSearchKeyword(
+        'auto.components.settings.accounts.search.e949b08ffb',
+        'rate limit'
+      ),
+      ...translateSearchKeyword('auto.components.settings.accounts.search.86edc96bc9', 'status bar')
+    ]
+  }
+])
+
 export const getAccountsPaneSearchEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   ...getAccountsLocationSearchEntries(),
   ...getAccountsClaudeSearchEntries(),
   ...getAccountsCodexSearchEntries(),
   ...getAccountsGeminiSearchEntries(),
   ...getAccountsOpencodeSearchEntries(),
-  ...getAccountsMiniMaxSearchEntries()
+  ...getAccountsMiniMaxSearchEntries(),
+  ...getAccountsGrokSearchEntries()
 ])

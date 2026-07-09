@@ -13,6 +13,7 @@ export type UsageProviderSettings = Pick<
   // flag from RateLimitState (pushed by the main process) so the bar stays
   // visible across reloads and between snapshot refreshes.
   minimaxCookieConfigured: boolean
+  grokAuthConfigured: boolean
 }
 
 type UsageProviderSnapshots = {
@@ -22,6 +23,7 @@ type UsageProviderSnapshots = {
   opencodeGo: ProviderRateLimits | null
   kimi: ProviderRateLimits | null
   minimax: ProviderRateLimits | null
+  grok: ProviderRateLimits | null
 }
 
 type UsageProviderId = ProviderRateLimits['provider']
@@ -66,7 +68,8 @@ export function hasUsageProviderSettings(
     (settings?.claudeManagedAccounts?.length ?? 0) > 0 ||
     settings?.geminiCliOAuthEnabled === true ||
     Boolean(settings?.opencodeSessionCookie?.trim()) ||
-    settings?.minimaxCookieConfigured === true
+    settings?.minimaxCookieConfigured === true ||
+    settings?.grokAuthConfigured === true
   )
 }
 
@@ -91,6 +94,9 @@ export function hasUsageProviderSettingsForProvider(
   }
   if (providerId === 'minimax') {
     return settings.minimaxCookieConfigured === true
+  }
+  if (providerId === 'grok') {
+    return settings.grokAuthConfigured === true
   }
   return false
 }
@@ -140,7 +146,8 @@ export function isUsageEmptyState(
     isProviderSnapshotPending(providers.gemini) ||
     isProviderSnapshotPending(providers.opencodeGo) ||
     isProviderSnapshotPending(providers.kimi) ||
-    isProviderSnapshotPending(providers.minimax)
+    isProviderSnapshotPending(providers.minimax) ||
+    isProviderSnapshotPending(providers.grok)
   ) {
     return false
   }
@@ -151,6 +158,7 @@ export function isUsageEmptyState(
     !isProviderConfigured(providers.gemini) &&
     !isProviderConfigured(providers.opencodeGo) &&
     !isProviderConfigured(providers.kimi) &&
-    !isProviderConfigured(providers.minimax)
+    !isProviderConfigured(providers.minimax) &&
+    !isProviderConfigured(providers.grok)
   )
 }

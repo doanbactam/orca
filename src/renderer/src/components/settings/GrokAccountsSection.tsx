@@ -1,0 +1,192 @@
+import { useCallback, useEffect, useState } from 'react'
+import { ExternalLink, Loader2, RefreshCw, ShieldCheck } from 'lucide-react'
+import { AgentIcon } from '@/lib/agent-catalog'
+import { translate } from '@/i18n/i18n'
+import { cn } from '@/lib/utils'
+import { useAppStore } from '../../store'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { SearchableSetting } from './SearchableSetting'
+const GROK_CLI_DOCS_URL = 'https://docs.x.ai/build/overview'
+
+type GrokAccountStatus = {
+  signedIn: boolean
+  email: string | null
+  teamId: string | null
+  tokenFresh: boolean
+  error: string | null
+}
+
+export function GrokAccountsSection(): React.JSX.Element {
+  const refreshRateLimits = useAppStore((s) => s.refreshRateLimits)
+  const grokUsage = useAppStore((s) => s.rateLimits.grok)
+  const [status, setStatus] = useState<GrokAccountStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const loadStatus = useCallback(async (): Promise<void> => {
+    try {
+      const next = await window.api.grokAccounts.getStatus()
+      setStatus(next)
+    } catch (error) {
+      console.error('Failed to load Grok account status:', error)
+      setStatus({
+        signedIn: false,
+        email: null,
+        teamId: null,
+        tokenFresh: false,
+        error: error instanceof Error ? error.message : 'Unable to read Grok sign-in'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadStatus()
+  }, [loadStatus, grokUsage?.updatedAt])
+
+  const handleRefreshUsage = async (): Promise<void> => {
+    setRefreshing(true)
+    try {
+      await refreshRateLimits()
+      await loadStatus()
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
+  const signedIn = status?.signedIn === true
+  const tokenFresh = status?.tokenFresh === true
+
+  return (
+    <section id="accounts-grok" className="space-y-4 scroll-mt-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            <AgentIcon agent="grok" size={16} />
+            {translate('auto.components.settings.GrokAccountsSection.a1b2c3d4e5', 'Grok (xAI)')}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {translate(
+              'auto.components.settings.GrokAccountsSection.f6e5d4c3b2',
+              'Uses your Grok CLI OAuth session (~/.grok/auth.json) for weekly credit usage.'
+            )}
+          </p>
+        </div>
+        <a
+          href={GROK_CLI_DOCS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          {translate('auto.components.settings.GrokAccountsSection.0d8e77bc40', 'Grok CLI docs')}
+          <ExternalLink className="size-3" />
+        </a>
+      </div>
+
+      <div
+        className={cn(
+          'flex items-start gap-3 rounded-lg border bg-muted/20 p-3',
+          signedIn && tokenFresh ? 'border-border/60' : 'border-border/40'
+        )}
+      >
+        <ShieldCheck
+          className={cn(
+            'mt-0.5 size-4 shrink-0',
+            signedIn && tokenFresh ? 'text-foreground' : 'text-muted-foreground'
+          )}
+        />
+        <div className="min-w-0 flex-1 space-y-1">
+          {loading ? (
+            <p className="text-xs text-muted-foreground">
+              {translate('auto.components.settings.GrokAccountsSection.ad47a33f72', 'Loading…')}
+            </p>
+          ) : signedIn ? (
+            <>
+              <p className="truncate text-xs font-medium">
+                {status?.email ??
+                  translate('auto.components.settings.GrokAccountsSection.b2c3d4e5f6', 'Signed in')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {tokenFresh
+                  ? translate(
+                      'auto.components.settings.GrokAccountsSection.c3d4e5f6a7',
+                      'Session active. Orca reads credentials locally; tokens are refreshed by the Grok CLI.'
+                    )
+                  : translate(
+                      'auto.components.settings.GrokAccountsSection.d4e5f6a7b8',
+                      'Session expired — run grok login in a terminal to refresh.'
+                    )}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-xs font-medium">
+                {translate(
+                  'auto.components.settings.GrokAccountsSection.e5f6a7b8c9',
+                  'Not signed in to Grok CLI'
+                )}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {translate(
+                  'auto.components.settings.GrokAccountsSection.f6a7b8c9d0',
+                  'Run grok login (or start grok) to authenticate with xAI OAuth, then refresh usage here.'
+                )}
+              </p>
+            </>
+          )}
+          {status?.error ? <p className="text-xs text-destructive">{status.error}</p> : null}
+        </div>
+        <Button
+          variant="outline"
+          size="xs"
+          disabled={refreshing}
+          onClick={() => void handleRefreshUsage()}
+          className="shrink-0 gap-1"
+        >
+          {refreshing ? (
+            <Loader2 className="size-3 animate-spin" />
+          ) : (
+            <RefreshCw className="size-3" />
+          )}
+          {translate('auto.components.settings.GrokAccountsSection.3325d996cb', 'Refresh usage')}
+        </Button>
+      </div>
+
+      {grokUsage?.weekly ? (
+        <SearchableSetting
+          title={translate(
+            'auto.components.settings.GrokAccountsSection.weeklyCredits',
+            'Weekly credits'
+          )}
+          description={translate(
+            'auto.components.settings.GrokAccountsSection.weeklyCreditsDesc',
+            'Mirrors the Grok TUI /usage weekly credit meter.'
+          )}
+          keywords={['grok', 'xai', 'usage', 'credits', 'oauth']}
+        >
+          <div className="flex items-center gap-2 text-xs">
+            <Badge variant="secondary" className="tabular-nums">
+              {Math.round(grokUsage.weekly.usedPercent)}%
+            </Badge>
+            {grokUsage.weekly.resetDescription ? (
+              <span className="text-muted-foreground">
+                {translate(
+                  'auto.components.settings.GrokAccountsSection.resets',
+                  'Resets {{when}}',
+                  { when: grokUsage.weekly.resetDescription }
+                )}
+              </span>
+            ) : null}
+            {grokUsage.usageMetadata?.authProvenance ? (
+              <span className="truncate text-muted-foreground">
+                {grokUsage.usageMetadata.authProvenance}
+              </span>
+            ) : null}
+          </div>
+        </SearchableSetting>
+      ) : null}
+    </section>
+  )
+}
