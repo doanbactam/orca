@@ -11,7 +11,7 @@ import { SearchableSetting } from './SearchableSetting'
 const GROK_CLI_DOCS_URL = 'https://docs.x.ai/build/overview'
 
 export function GrokAccountsSection(): React.JSX.Element {
-  const refreshRateLimits = useAppStore((s) => s.refreshRateLimits)
+  const refreshGrokRateLimits = useAppStore((s) => s.refreshGrokRateLimits)
   const grokUsage = useAppStore((s) => s.rateLimits.grok)
   const [status, setStatus] = useState<GrokAccountStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -43,7 +43,7 @@ export function GrokAccountsSection(): React.JSX.Element {
   const handleRefreshUsage = async (): Promise<void> => {
     setRefreshing(true)
     try {
-      await refreshRateLimits()
+      await refreshGrokRateLimits()
       await loadStatus()
     } finally {
       setRefreshing(false)

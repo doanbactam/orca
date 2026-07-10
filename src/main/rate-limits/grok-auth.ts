@@ -34,6 +34,15 @@ export type GrokAuthReadResult =
   | { status: 'error'; error: string }
   | { status: 'ok'; session: GrokAuthSession }
 
+function getGrokAuthReadError(err: unknown): string {
+  if (err instanceof SyntaxError) {
+    return 'Grok auth file is invalid'
+  }
+  // Why: filesystem errors often include the full auth path; renderer/mobile
+  // account state should not expose local usernames or custom GROK_HOME values.
+  return 'Unable to read Grok auth file'
+}
+
 function parseAuthEntry(value: unknown): GrokAuthEntry | null {
   if (typeof value !== 'object' || value === null) {
     return null
@@ -85,7 +94,7 @@ export function readGrokAuthSession(): GrokAuthReadResult {
   } catch (err) {
     return {
       status: 'error',
-      error: err instanceof Error ? err.message : 'Unable to read Grok auth file'
+      error: getGrokAuthReadError(err)
     }
   }
 }

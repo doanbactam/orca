@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AppState } from '../../store'
 
 const storeMocks = vi.hoisted(() => ({
-  refreshRateLimits: vi.fn(),
+  refreshGrokRateLimits: vi.fn(),
   openSettingsPage: vi.fn(),
   openSettingsTarget: vi.fn(),
   recordFeatureInteraction: vi.fn()
@@ -43,7 +43,7 @@ const mockStoreState = {
     inactiveClaudeAccounts: [],
     inactiveCodexAccounts: []
   },
-  refreshRateLimits: storeMocks.refreshRateLimits,
+  refreshGrokRateLimits: storeMocks.refreshGrokRateLimits,
   openSettingsPage: storeMocks.openSettingsPage,
   openSettingsTarget: storeMocks.openSettingsTarget,
   recordFeatureInteraction: storeMocks.recordFeatureInteraction
@@ -79,7 +79,7 @@ import { GrokUsagePane } from './GrokUsagePane'
 
 describe('GrokUsagePane', () => {
   beforeEach(() => {
-    storeMocks.refreshRateLimits.mockResolvedValue(undefined)
+    storeMocks.refreshGrokRateLimits.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -91,7 +91,7 @@ describe('GrokUsagePane', () => {
     render(<GrokUsagePane />)
 
     expect(screen.getByTestId('grok-usage-pane')).toBeInTheDocument()
-    expect(storeMocks.refreshRateLimits).not.toHaveBeenCalled()
+    expect(storeMocks.refreshGrokRateLimits).not.toHaveBeenCalled()
   })
 
   it('refreshes usage only from the explicit refresh button', async () => {
@@ -100,6 +100,6 @@ describe('GrokUsagePane', () => {
 
     await user.click(screen.getByRole('button', { name: 'Refresh Grok usage' }))
 
-    expect(storeMocks.refreshRateLimits).toHaveBeenCalledTimes(1)
+    expect(storeMocks.refreshGrokRateLimits).toHaveBeenCalledTimes(1)
   })
 })

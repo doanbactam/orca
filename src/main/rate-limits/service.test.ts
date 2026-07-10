@@ -182,6 +182,39 @@ describe('RateLimitService', () => {
     expect(readGrokAuthSession).not.toHaveBeenCalled()
   })
 
+  it('refreshes Grok without refreshing other providers', async () => {
+    const authReadResult = {
+      status: 'ok' as const,
+      session: {
+        accessToken: 'token',
+        userId: null,
+        email: 'dev@example.com',
+        teamId: null,
+        expiresAtMs: null,
+        oidcClientId: null
+      }
+    }
+    vi.mocked(readGrokAuthSession).mockReturnValue(authReadResult)
+    vi.mocked(fetchGrokRateLimits).mockResolvedValueOnce(okProvider('grok', 42))
+    const service = new RateLimitService()
+
+    await service.refreshGrok()
+
+    expect(fetchGrokRateLimits).toHaveBeenCalledTimes(1)
+    expect(fetchGrokRateLimits).toHaveBeenCalledWith({
+      authReadResult,
+      signal: expect.any(AbortSignal)
+    })
+    expect(fetchClaudeRateLimits).not.toHaveBeenCalled()
+    expect(fetchCodexRateLimits).not.toHaveBeenCalled()
+    expect(fetchGeminiRateLimits).not.toHaveBeenCalled()
+    expect(fetchOpenCodeGoRateLimits).not.toHaveBeenCalled()
+    expect(fetchKimiRateLimits).not.toHaveBeenCalled()
+    expect(fetchMiniMaxRateLimits).not.toHaveBeenCalled()
+    expect(service.getState().grokAuthConfigured).toBe(true)
+    expect(service.getState().grok?.status).toBe('ok')
+  })
+
   it('does not refetch Claude when a Codex account switch is queued during fetchAll', async () => {
     const service = new RateLimitService()
     const firstClaude = deferred<ProviderRateLimits>()

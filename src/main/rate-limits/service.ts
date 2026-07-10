@@ -127,6 +127,7 @@ export class RateLimitService {
   private fullFetchQueued = false
   private codexOnlyFetchQueued = false
   private claudeOnlyFetchQueued = false
+  private grokOnlyFetchQueued = false
   private activeFetchAbortControllers = new Set<AbortController>()
   private fetchIdleResolvers: (() => void)[] = []
   private codexFetchGeneration = 0
@@ -294,6 +295,11 @@ export class RateLimitService {
     // broken after wake/focus transitions because the click can no-op even
     // though the user is asking for a fresh read right now.
     await this.fetchAll({ force: true })
+    return this.getState()
+  }
+
+  async refreshGrok(): Promise<RateLimitState> {
+    await this.fetchGrokOnly({ force: true })
     return this.getState()
   }
 
@@ -746,6 +752,15 @@ export class RateLimitService {
             break
           }
         }
+        if (this.grokOnlyFetchQueued) {
+          this.grokOnlyFetchQueued = false
+          const grokSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchGrokOnlyCycle(fetchSignal)
+          )
+          if (grokSignal.aborted) {
+            break
+          }
+        }
       }
     } finally {
       this.isFetching = false
@@ -793,6 +808,15 @@ export class RateLimitService {
             this.runFetchClaudeOnlyCycle(fetchSignal)
           )
           if (claudeSignal.aborted) {
+            break
+          }
+        }
+        if (this.grokOnlyFetchQueued) {
+          this.grokOnlyFetchQueued = false
+          const grokSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchGrokOnlyCycle(fetchSignal)
+          )
+          if (grokSignal.aborted) {
             break
           }
         }
@@ -846,6 +870,74 @@ export class RateLimitService {
             break
           }
         }
+        if (this.grokOnlyFetchQueued) {
+          this.grokOnlyFetchQueued = false
+          const grokSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchGrokOnlyCycle(fetchSignal)
+          )
+          if (grokSignal.aborted) {
+            break
+          }
+        }
+      }
+    } finally {
+      this.isFetching = false
+      this.resolveFetchIdleWaiters()
+    }
+  }
+
+  private async fetchGrokOnly(options?: { force?: boolean }): Promise<void> {
+    if (this.isFetching) {
+      if (options?.force) {
+        this.grokOnlyFetchQueued = true
+        return this.waitForFetchIdle()
+      }
+      return
+    }
+    this.isFetching = true
+
+    try {
+      let shouldContinue = true
+      while (shouldContinue) {
+        const signal = await this.runWithFetchAbortSignal((fetchSignal) =>
+          this.runFetchGrokOnlyCycle(fetchSignal)
+        )
+        shouldContinue = false
+        if (signal.aborted) {
+          break
+        }
+        if (this.fullFetchQueued) {
+          this.fullFetchQueued = false
+          const fullSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchAllCycle(fetchSignal)
+          )
+          if (fullSignal.aborted) {
+            break
+          }
+          continue
+        }
+        if (this.grokOnlyFetchQueued) {
+          this.grokOnlyFetchQueued = false
+          shouldContinue = true
+        }
+        if (this.codexOnlyFetchQueued) {
+          this.codexOnlyFetchQueued = false
+          const codexSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchCodexOnlyCycle(fetchSignal)
+          )
+          if (codexSignal.aborted) {
+            break
+          }
+        }
+        if (this.claudeOnlyFetchQueued) {
+          this.claudeOnlyFetchQueued = false
+          const claudeSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchClaudeOnlyCycle(fetchSignal)
+          )
+          if (claudeSignal.aborted) {
+            break
+          }
+        }
       }
     } finally {
       this.isFetching = false
@@ -858,7 +950,8 @@ export class RateLimitService {
       !this.isFetching &&
       !this.fullFetchQueued &&
       !this.codexOnlyFetchQueued &&
-      !this.claudeOnlyFetchQueued
+      !this.claudeOnlyFetchQueued &&
+      !this.grokOnlyFetchQueued
     ) {
       return Promise.resolve()
     }
@@ -875,7 +968,8 @@ export class RateLimitService {
       this.isFetching ||
       this.fullFetchQueued ||
       this.codexOnlyFetchQueued ||
-      this.claudeOnlyFetchQueued
+      this.claudeOnlyFetchQueued ||
+      this.grokOnlyFetchQueued
     ) {
       return
     }
@@ -919,6 +1013,7 @@ export class RateLimitService {
     this.fullFetchQueued = false
     this.codexOnlyFetchQueued = false
     this.claudeOnlyFetchQueued = false
+    this.grokOnlyFetchQueued = false
   }
 
   private resolveAndClearFetchIdleWaiters(): void {
@@ -1408,6 +1503,45 @@ export class RateLimitService {
       claude: shouldApplyClaude
         ? this.applyStalePolicy(claude, previousState.claude)
         : this.state.claude
+    })
+
+    this.lastFetchAt = Date.now()
+  }
+
+  private async runFetchGrokOnlyCycle(signal: AbortSignal): Promise<void> {
+    if (signal.aborted) {
+      return
+    }
+    const previousState = this.state
+    const grokAuthReadResult = readGrokAuthSession()
+    this.grokAuthConfigured = grokAuthReadResult.status === 'ok'
+
+    this.updateState({
+      ...previousState,
+      grok: this.withFetchingStatus(previousState.grok, 'grok')
+    })
+
+    const grok = await fetchGrokRateLimits({
+      signal,
+      authReadResult: grokAuthReadResult
+    }).catch(
+      (err): ProviderRateLimits => ({
+        provider: 'grok',
+        session: null,
+        weekly: null,
+        updatedAt: Date.now(),
+        error: err instanceof Error ? err.message : 'Unknown error',
+        status: 'error'
+      })
+    )
+
+    if (signal.aborted) {
+      return
+    }
+
+    this.updateState({
+      ...this.state,
+      grok: this.applyStalePolicy(grok, previousState.grok)
     })
 
     this.lastFetchAt = Date.now()

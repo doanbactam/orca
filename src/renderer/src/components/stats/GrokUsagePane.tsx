@@ -9,7 +9,7 @@ import { formatUpdatedAt } from './usage-formatters'
 export function GrokUsagePane(): React.JSX.Element {
   const grok = useAppStore((s) => s.rateLimits.grok)
   const grokAuthConfigured = useAppStore((s) => s.rateLimits.grokAuthConfigured)
-  const refreshRateLimits = useAppStore((s) => s.refreshRateLimits)
+  const refreshGrokRateLimits = useAppStore((s) => s.refreshGrokRateLimits)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
@@ -83,7 +83,7 @@ export function GrokUsagePane(): React.JSX.Element {
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  onClick={() => void refreshRateLimits()}
+                  onClick={() => void refreshGrokRateLimits()}
                   disabled={isFetching}
                   aria-label={translate(
                     'auto.components.stats.GrokUsagePane.i0j1k2l3m4',
