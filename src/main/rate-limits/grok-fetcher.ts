@@ -9,7 +9,7 @@ import {
 
 // Why: billing URL and headers must match Grok CLI or xAI rejects the request.
 const GROK_CLI_PROXY_BASE =
-  process.env.GROK_CLI_CHAT_PROXY_BASE_URL?.replace(/\/$/, '') ??
+  process.env.GROK_CLI_CHAT_PROXY_BASE_URL?.trim().replace(/\/$/, '') ||
   'https://cli-chat-proxy.grok.com/v1'
 const BILLING_CREDITS_URL = `${GROK_CLI_PROXY_BASE}/billing?format=credits`
 const API_TIMEOUT_MS = 10_000
@@ -108,8 +108,11 @@ function mapBillingResponse(
   session: GrokAuthSession
 ): ProviderRateLimits {
   const config = resolveBillingConfig(data)
+  // Why: a 200 without credit usage means the plan has no weekly credits —
+  // 'unavailable' hides the bar (like Claude on API-key billing); 'error'
+  // would paint a permanent alert for a signed-in account that has no quota.
   if (!config) {
-    return result('error', 'Grok billing response did not include config')
+    return result('unavailable', 'Grok billing response did not include config')
   }
   const weekly = mapWeeklyCredits(config)
   const tier = config.subscriptionTier?.trim()
@@ -121,7 +124,7 @@ function mapBillingResponse(
     weekly,
     updatedAt: Date.now(),
     error: weekly ? null : 'Grok billing response did not include credit usage',
-    status: weekly ? 'ok' : 'error',
+    status: weekly ? 'ok' : 'unavailable',
     usageMetadata: {
       source: 'oauth',
       authProvenance: provenance

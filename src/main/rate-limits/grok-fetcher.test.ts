@@ -100,6 +100,30 @@ describe('fetchGrokRateLimits', () => {
     )
   })
 
+  it('returns unavailable when not signed in even if a token-less auth file exists', async () => {
+    authState.file = JSON.stringify({})
+    const result = await fetchGrokRateLimits()
+    expect(result.status).toBe('unavailable')
+    expect(netFetchMock).not.toHaveBeenCalled()
+  })
+
+  it('returns unavailable when billing has no credit usage', async () => {
+    authState.file = freshAuthJson()
+    netFetchMock.mockResolvedValueOnce(jsonResponse({ config: { subscriptionTier: 'Enterprise' } }))
+
+    const result = await fetchGrokRateLimits()
+    expect(result.status).toBe('unavailable')
+    expect(result.weekly).toBeNull()
+  })
+
+  it('returns unavailable when billing response has no config', async () => {
+    authState.file = freshAuthJson()
+    netFetchMock.mockResolvedValueOnce(jsonResponse({}))
+
+    const result = await fetchGrokRateLimits()
+    expect(result.status).toBe('unavailable')
+  })
+
   it('aborts the billing request when the caller aborts', async () => {
     authState.file = freshAuthJson()
     const controller = new AbortController()

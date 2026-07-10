@@ -90,7 +90,9 @@ export function readGrokAuthSession(): GrokAuthReadResult {
         }
       }
     }
-    return { status: 'error', error: 'Grok auth file has no session token' }
+    // Why: a token-less file (e.g. after grok logout) means signed out, not a
+    // failure — 'error' would keep a status-bar alert visible for that user.
+    return { status: 'missing' }
   } catch (err) {
     return {
       status: 'error',
